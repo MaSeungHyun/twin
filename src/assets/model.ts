@@ -4,15 +4,17 @@ export type ModelId = "model01" | "model02" | "model03" | "model04";
 const MODEL_PROXY_BASE = "/api/models";
 
 const MODEL_URLS: Partial<Record<ModelId, string>> = {
-  // model01: `${MODEL_PROXY_BASE}/model01.glb`,
+  model01: `${MODEL_PROXY_BASE}/model01.glb`,
+  model02: `${MODEL_PROXY_BASE}/model02.glb`,
   model04: `${MODEL_PROXY_BASE}/model04.glb`,
-  // model03: `${MODEL_PROXY_BASE}/model03.glb`,
+  model03: `${MODEL_PROXY_BASE}/model03.glb`,
 };
 
 export const MODEL_OPTIONS = [
-  // { id: "model01" as const, label: "Model 01" },
+  { id: "model01" as const, label: "Model 01" },
+  { id: "model02" as const, label: "Model 02" },
+  { id: "model03" as const, label: "Model 03" },
   { id: "model04" as const, label: "Model 04" },
-  // { id: "model03" as const, label: "Model 03" },
 ]
   .map(({ id, label }) => ({
     id,
