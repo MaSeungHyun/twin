@@ -1,6 +1,6 @@
 export type ModelId = "model01" | "model02" | "model03";
 
-/** GitHub Release는 CORS 미지원 → /api/models 프록시 경유 (vite.config / vercel.json) */
+/** GitHub Release는 CORS 미지원 → /api/models 프록시 경유 (vite dev / Vercel Edge) */
 const MODEL_PROXY_BASE = "/api/models";
 
 const MODEL_URLS: Record<ModelId, string | undefined> = {
