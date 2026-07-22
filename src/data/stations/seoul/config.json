@@ -1,0 +1,85 @@
+{
+  "stationId": "SEOUL",
+  "displayName": "Seoul Station",
+  "tagoNodeId": "NAT010000",
+  "modelUrl": "",
+  "floors": [
+    {
+      "level": 1,
+      "name": "Platform level",
+      "viewCenter": [0, 0, -8],
+      "viewDistance": 120
+    },
+    {
+      "level": 2,
+      "name": "Concourse & transfer",
+      "viewCenter": [0, 4, 12],
+      "viewDistance": 90
+    },
+    {
+      "level": 3,
+      "name": "Level 3",
+      "viewCenter": [0, 10, 8],
+      "viewDistance": 100
+    }
+  ],
+  "zones": [
+    {
+      "zoneId": "overview",
+      "name": "Overview",
+      "floor": 2,
+      "cameraPresetId": "overview",
+      "sortOrder": 0
+    },
+    {
+      "zoneId": "transfer",
+      "name": "Transfer",
+      "floor": 2,
+      "bounds": { "min": { "x": -35, "y": 3, "z": 0 }, "max": { "x": 35, "y": 6, "z": 28 } },
+      "cameraPresetId": "transfer",
+      "sortOrder": 1
+    },
+    {
+      "zoneId": "restroom",
+      "name": "Restroom (2F)",
+      "floor": 2,
+      "bounds": { "min": { "x": 22, "y": 3, "z": 18 }, "max": { "x": 32, "y": 6, "z": 26 } },
+      "cameraPresetId": "restroom",
+      "sortOrder": 2
+    },
+    {
+      "zoneId": "platform-56",
+      "name": "Platform 5·6",
+      "floor": 1,
+      "bounds": { "min": { "x": -50, "y": -1, "z": -35 }, "max": { "x": 50, "y": 2, "z": -5 } },
+      "cameraPresetId": "platform-56",
+      "sortOrder": 3
+    }
+  ],
+  "cameraPresets": {
+    "overview": {
+      "id": "overview",
+      "position": [72, 48, 72],
+      "target": [0, 2, 0],
+      "durationMs": 1200
+    },
+    "transfer": {
+      "id": "transfer",
+      "position": [0, 18, 42],
+      "target": [0, 4, 14],
+      "durationMs": 1000
+    },
+    "restroom": {
+      "id": "restroom",
+      "position": [38, 12, 32],
+      "target": [27, 4, 22],
+      "durationMs": 900
+    },
+    "platform-56": {
+      "id": "platform-56",
+      "position": [0, 14, 8],
+      "target": [0, 0, -18],
+      "durationMs": 1100
+    }
+  }
+}

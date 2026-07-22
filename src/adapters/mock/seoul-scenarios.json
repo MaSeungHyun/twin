@@ -1,0 +1,43 @@
+{
+  "stationId": "SEOUL",
+  "scenarios": [
+    {
+      "id": "demo-safety-line-s2",
+      "delayMs": 45000,
+      "alarm": {
+        "type": "SAFETY_LINE_BREACH",
+        "severity": "CRITICAL",
+        "zoneId": "platform-56",
+        "deviceId": "sld-006",
+        "title": "안전선 침범",
+        "message": "5·6번 승강장 안전선 구역에 침입이 감지되었습니다.",
+        "congestionPercent": 72
+      }
+    },
+    {
+      "id": "demo-toilet-s3",
+      "delayMs": 120000,
+      "alarm": {
+        "type": "TOILET_EMERGENCY",
+        "severity": "CRITICAL",
+        "zoneId": "restroom",
+        "deviceId": "rs-02",
+        "title": "화장실 위급",
+        "message": "2층 남자화장실 2번 칸에서 위급 신호가 접수되었습니다."
+      }
+    },
+    {
+      "id": "demo-congestion-transfer",
+      "delayMs": 90000,
+      "alarm": {
+        "type": "CONGESTION_THRESHOLD",
+        "severity": "HIGH",
+        "zoneId": "transfer",
+        "deviceId": "cm-006",
+        "title": "혼잡 경보",
+        "message": "환승통로 혼잡도가 임계치를 초과했습니다.",
+        "congestionPercent": 78
+      }
+    }
+  ]
+}

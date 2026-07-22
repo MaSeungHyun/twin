@@ -1,0 +1,33 @@
+{
+  "stationId": "SEOUL",
+  "tracks": [
+    {
+      "trackId": "track-56-eastbound",
+      "name": "Platform 5·6 eastbound approach",
+      "platformZoneId": "platform-56",
+      "approachDurationMs": 25000,
+      "dwellDurationMs": 120000,
+      "points": [
+        { "x": -95, "y": 0, "z": -28 },
+        { "x": -60, "y": 0, "z": -24 },
+        { "x": -25, "y": 0, "z": -20 },
+        { "x": 5, "y": 0, "z": -17 },
+        { "x": 25, "y": 0, "z": -16 }
+      ]
+    },
+    {
+      "trackId": "track-56-westbound",
+      "name": "Platform 5·6 westbound approach",
+      "platformZoneId": "platform-56",
+      "approachDurationMs": 25000,
+      "dwellDurationMs": 120000,
+      "points": [
+        { "x": 95, "y": 0, "z": -28 },
+        { "x": 60, "y": 0, "z": -24 },
+        { "x": 25, "y": 0, "z": -20 },
+        { "x": -5, "y": 0, "z": -17 },
+        { "x": -25, "y": 0, "z": -16 }
+      ]
+    }
+  ]
+}
