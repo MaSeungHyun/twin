@@ -5,7 +5,7 @@ export const config = {
 const RELEASE_TAG = 'v0.0.0';
 const REPO = 'MaSeungHyun/twin';
 
-const ALLOWED = new Set(['model01.glb', 'model02.glb', 'model03.glb']);
+const MODEL_FILE_PATTERN = /^model\d+\.glb$/;
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -25,7 +25,7 @@ export default async function handler(request: Request): Promise<Response> {
   const { pathname } = new URL(request.url);
   const file = pathname.split('/').pop() ?? '';
 
-  if (!ALLOWED.has(file)) {
+  if (!MODEL_FILE_PATTERN.test(file)) {
     return new Response('Not found', { status: 404, headers: corsHeaders });
   }
 

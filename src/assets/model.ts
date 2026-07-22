@@ -24,7 +24,7 @@ export const MODEL_OPTIONS = [
 export const DEFAULT_MODEL_ID: ModelId =
   MODEL_OPTIONS.find((option) => option.id === "model04")?.id ??
   MODEL_OPTIONS[0]?.id ??
-  "model02";
+  "model04";
 
 export function getModelUrl(id: ModelId): string {
   const url = MODEL_URLS[id]?.trim();
