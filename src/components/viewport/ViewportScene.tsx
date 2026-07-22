@@ -1,5 +1,5 @@
 import { Suspense, type RefObject } from "react";
-import { Sky, StatsGl } from "@react-three/drei";
+import { StatsGl } from "@react-three/drei";
 
 import Model from "../model/Model";
 import Canvas from "./Canvas";
