@@ -20,8 +20,8 @@ export default function Viewport() {
           }}
           title={
             enableGPU
-              ? "WebGPU 모드: GLB 내장 라이트 대신 Environment 조명 사용"
-              : "WebGL 모드: GLB 내장 라이트 최대 100개"
+              ? "WebGPU 렌더러 사용"
+              : "WebGL 렌더러 사용"
           }
           onClick={() => setEnableGPU((prev) => !prev)}
         >
@@ -31,14 +31,9 @@ export default function Viewport() {
       <ModelSelector />
       <Canvas enableGPU={enableGPU}>
         <Sky />
-        {enableGPU ? (
-          <Environment preset="warehouse" environmentIntensity={1.1} />
-        ) : null}
-        <ambientLight intensity={enableGPU ? 0.6 : 1} />
-        <directionalLight
-          position={[3, 4, 5]}
-          intensity={enableGPU ? 1.2 : 2}
-        />
+        <Environment preset="warehouse" environmentIntensity={1.1} />
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[3, 4, 5]} intensity={1.2} />
         <Controls />
         <Suspense fallback={<Fallback />}>
           <Model enableGPU={enableGPU} />
