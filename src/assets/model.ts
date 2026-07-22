@@ -6,7 +6,9 @@ export type ModelId =
   | "model91"
   | "model92"
   | "model94"
-  | "model170";
+  | "model152"
+  | "model170"
+  | "model242";
 
 /** GitHub Release는 CORS 미지원 → /api/models 프록시 경유 (vite dev / Vercel Edge) */
 const MODEL_PROXY_BASE = "/api/models";
@@ -19,7 +21,9 @@ const MODEL_URLS: Partial<Record<ModelId, string>> = {
   model91: `${MODEL_PROXY_BASE}/model91.glb`,
   model92: `${MODEL_PROXY_BASE}/model92.glb`,
   model94: `${MODEL_PROXY_BASE}/model94.glb`,
+  model152: `${MODEL_PROXY_BASE}/model152.glb`,
   model170: `${MODEL_PROXY_BASE}/model170.glb`,
+  model242: `${MODEL_PROXY_BASE}/model242.glb`,
 };
 
 export const MODEL_OPTIONS = [
@@ -30,7 +34,9 @@ export const MODEL_OPTIONS = [
   { id: "model91" as const, label: "Model 91" },
   { id: "model92" as const, label: "Model 92" },
   { id: "model94" as const, label: "Model 94" },
+  { id: "model152" as const, label: "Model 152" },
   { id: "model170" as const, label: "Model 170" },
+  { id: "model242" as const, label: "Model 242" },
 ]
   .map(({ id, label }) => ({
     id,
@@ -40,7 +46,7 @@ export const MODEL_OPTIONS = [
   .filter((option) => option.url.length > 0);
 
 export const DEFAULT_MODEL_ID: ModelId =
-  MODEL_OPTIONS.find((option) => option.id === "model170")?.id ??
+  MODEL_OPTIONS.find((option) => option.id === "model69")?.id ??
   MODEL_OPTIONS[0]?.id ??
   "model69";
 

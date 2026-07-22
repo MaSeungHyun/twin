@@ -1,12 +1,5 @@
-import { useGLTF } from "@react-three/drei";
-
 import { MODEL_OPTIONS, useModelStore } from "@/stores/modelStore";
 import { cn } from "@/lib/utils";
-import {
-  GLTF_USE_DRACO,
-  GLTF_USE_MESHOPT,
-  extendGltfLoader,
-} from "@/three/gltfLoader";
 
 export default function ModelSelector() {
   const selectedModelId = useModelStore((s) => s.selectedModelId);
@@ -32,14 +25,6 @@ export default function ModelSelector() {
                 ? "border-accent bg-accent/20 text-text"
                 : "border-border bg-bg/85 text-muted hover:border-white/20 hover:bg-bg/90 hover:text-text",
             )}
-            onPointerEnter={() =>
-              useGLTF.preload(
-                option.url,
-                GLTF_USE_DRACO,
-                GLTF_USE_MESHOPT,
-                extendGltfLoader,
-              )
-            }
             onClick={() => selectModel(option.id)}
           >
             {option.label}
