@@ -1,13 +1,9 @@
 import { Suspense, useState } from "react";
-import Canvas from "./Canvas";
-import { Environment, Sky, StatsGl } from "@react-three/drei";
-import Controls from "./Controls";
-import Fallback from "./Fallback";
-import Model from "../model/Model";
-import ModelSelector from "../model/ModelSelector";
-import { isMobileDevice } from "@/lib/device";
 
-const isMobile = isMobileDevice();
+import ModelSelector from "../model/ModelSelector";
+
+import Fallback from "./Fallback";
+import ViewportScene from "./ViewportScene";
 
 export default function Viewport() {
   const [enableGPU, setEnableGPU] = useState(false);
@@ -22,9 +18,7 @@ export default function Viewport() {
             backgroundColor: enableGPU ? "#0066b3" : "#000000",
           }}
           title={
-            enableGPU
-              ? "WebGPU 렌더러 사용"
-              : "WebGL 렌더러 사용"
+            enableGPU ? "WebGPU 렌더러 사용" : "WebGL 렌더러 사용"
           }
           onClick={() => setEnableGPU((prev) => !prev)}
         >
@@ -32,21 +26,9 @@ export default function Viewport() {
         </button>
       </div>
       <ModelSelector />
-      <Canvas enableGPU={enableGPU}>
-        <Sky />
-        {!isMobile ? (
-          <Environment preset="warehouse" environmentIntensity={1.1} />
-        ) : null}
-        <ambientLight intensity={isMobile ? 1.2 : 0.6} />
-        <directionalLight position={[3, 4, 5]} intensity={isMobile ? 1.4 : 1.2} />
-        <Controls />
-        <Suspense fallback={<Fallback />}>
-          <Model enableGPU={enableGPU} />
-        </Suspense>
-        {!isMobile ? (
-          <StatsGl className="absolute bottom-4 right-4 z-30" />
-        ) : null}
-      </Canvas>
+      <Suspense fallback={<Fallback />}>
+        <ViewportScene enableGPU={enableGPU} />
+      </Suspense>
     </div>
   );
 }
