@@ -48,7 +48,7 @@ function ModelScene({ url }: { url: string }) {
   return <primitive object={modelScene} />;
 }
 
-export default function Model({ enableGPU }: { enableGPU: boolean }) {
+export default function Model() {
   const modelUrl = useModelStore((s) => s.selectedUrl);
   const prevUrlRef = useRef(modelUrl);
 
@@ -60,10 +60,5 @@ export default function Model({ enableGPU }: { enableGPU: boolean }) {
     }
   }, [modelUrl]);
 
-  return (
-    <ModelScene
-      key={`${modelUrl}-${enableGPU ? "gpu" : "gl"}`}
-      url={modelUrl}
-    />
-  );
+  return <ModelScene key={`${modelUrl}`} url={modelUrl} />;
 }
