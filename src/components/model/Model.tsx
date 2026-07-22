@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { Light, type Object3D } from "three";
+// import { Light, type Object3D } from "three";
 
 import { useModelStore } from "@/stores/modelStore";
 
-function collectLights(root: Object3D) {
-  const lights: Light[] = [];
-  root.traverse((obj) => {
-    if ((obj as Light).isLight) lights.push(obj as Light);
-  });
-  return lights;
-}
+// function collectLights(root: Object3D) {
+//   const lights: Light[] = [];
+//   root.traverse((obj) => {
+//     if ((obj as Light).isLight) lights.push(obj as Light);
+//   });
+//   return lights;
+// }
 
 /** GLB 내장 라이트는 WebGL/WebGPU 모두 셰이더 한도를 초과할 수 있어 제거 */
 // function stripAllLights(root: Object3D) {
