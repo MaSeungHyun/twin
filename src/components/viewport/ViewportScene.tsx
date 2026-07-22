@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import Model from "../model/Model";
+import WasteModels from "../model/WasteModels";
 import Canvas from "./Canvas";
 import Controls from "./Controls";
 
@@ -13,6 +14,7 @@ export default function ViewportScene() {
       <Suspense fallback={null}>
         <Model />
       </Suspense>
+      <WasteModels />
     </Canvas>
   );
 }
