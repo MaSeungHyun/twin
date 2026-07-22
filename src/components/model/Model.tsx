@@ -1,34 +1,73 @@
-import { useLayoutEffect } from "react";
-import { useGLTF } from "@react-three/drei";
-import { Light, type Object3D } from "three";
-import { modelUrl } from "../../assets/model";
+import { useMemo } from 'react'
+import { useGLTF } from '@react-three/drei'
+import { Light, type Object3D } from 'three'
 
-useGLTF.preload(modelUrl, true);
+import { MODEL_OPTIONS } from '@/assets/model'
+import { useModelStore } from '@/stores/modelStore'
+
+for (const option of MODEL_OPTIONS) {
+  useGLTF.preload(option.url, true)
+}
 
 /** MeshStandardMaterial fragment uniform 한도를 넘지 않도록 GLB 라이트 상한 */
-const MAX_LIGHTS = 100;
+const MAX_LIGHTS = 100
+
+function collectLights(root: Object3D) {
+  const lights: Light[] = []
+  root.traverse((obj) => {
+    if ((obj as Light).isLight) lights.push(obj as Light)
+  })
+  return lights
+}
 
 function limitLights(root: Object3D, max = MAX_LIGHTS) {
-  const lights: Light[] = [];
-  root.traverse((obj) => {
-    if ((obj as Light).isLight) lights.push(obj as Light);
-  });
+  const lights = collectLights(root)
+  if (lights.length <= max) return
 
-  if (lights.length <= max) return;
-
-  // 밝은 라이트 우선 유지
-  lights.sort((a, b) => b.intensity - a.intensity);
+  lights.sort((a, b) => b.intensity - a.intensity)
   for (const light of lights.slice(max)) {
-    light.parent?.remove(light);
+    light.parent?.remove(light)
   }
 }
 
-export default function Model() {
-  const { scene } = useGLTF(modelUrl);
+function stripAllLights(root: Object3D) {
+  for (const light of collectLights(root)) {
+    light.parent?.remove(light)
+    light.dispose?.()
+  }
+}
 
-  useLayoutEffect(() => {
-    limitLights(scene);
-  }, [scene]);
+function ModelScene({
+  url,
+  enableGPU,
+}: {
+  url: string
+  enableGPU: boolean
+}) {
+  const { scene } = useGLTF(url)
 
-  return <primitive object={scene} />;
+  const modelScene = useMemo(() => {
+    const clone = scene.clone(true)
+    if (enableGPU) {
+      // WebGPURenderer는 GLB PointLight 다수 + StandardMaterial 조합을 WebGL처럼 지원하지 않음
+      stripAllLights(clone)
+    } else {
+      limitLights(clone)
+    }
+    return clone
+  }, [scene, enableGPU])
+
+  return <primitive object={modelScene} />
+}
+
+export default function Model({ enableGPU }: { enableGPU: boolean }) {
+  const modelUrl = useModelStore((s) => s.selectedUrl)
+
+  return (
+    <ModelScene
+      key={`${modelUrl}-${enableGPU ? 'gpu' : 'gl'}`}
+      url={modelUrl}
+      enableGPU={enableGPU}
+    />
+  )
 }
