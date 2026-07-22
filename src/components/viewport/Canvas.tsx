@@ -1,12 +1,6 @@
-import {
-  Canvas as R3FCanvas,
-  useFrame,
-  useThree,
-  type Vector3,
-} from "@react-three/fiber";
-import { Object3D, WebGLRenderer } from "three";
+import { Canvas as R3FCanvas, type Vector3 } from "@react-three/fiber";
+import { WebGLRenderer } from "three";
 import type { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPURenderer.Nodes.js";
-import { useEffect } from "react";
 
 const INITIAL_CAMERA_POSITION: Vector3 = [3, 3, 5];
 
