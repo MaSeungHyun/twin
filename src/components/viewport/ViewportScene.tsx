@@ -5,7 +5,6 @@ import Model from "../model/Model";
 import Canvas from "./Canvas";
 import Controls from "./Controls";
 import { isMobileDevice } from "@/lib/device";
-import { PostProcessing } from "three/webgpu";
 
 const isMobile = isMobileDevice();
 

@@ -14,12 +14,12 @@ function collectLights(root: Object3D) {
 }
 
 /** GLB 내장 라이트는 WebGL/WebGPU 모두 셰이더 한도를 초과할 수 있어 제거 */
-function stripAllLights(root: Object3D) {
-  for (const light of collectLights(root)) {
-    light.parent?.remove(light);
-    light.dispose?.();
-  }
-}
+// function stripAllLights(root: Object3D) {
+//   for (const light of collectLights(root)) {
+//     light.parent?.remove(light);
+//     light.dispose?.();
+//   }
+// }
 
 function ModelScene({ url }: { url: string }) {
   const invalidate = useThree((s) => s.invalidate);
