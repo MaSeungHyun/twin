@@ -1,29 +1,39 @@
-import { Environment, Sky, StatsGl } from "@react-three/drei";
+import { Suspense, type RefObject } from "react";
+import { Sky, StatsGl } from "@react-three/drei";
 
 import Model from "../model/Model";
 import Canvas from "./Canvas";
 import Controls from "./Controls";
 import { isMobileDevice } from "@/lib/device";
+import { PostProcessing } from "three/webgpu";
 
 const isMobile = isMobileDevice();
 
 type ViewportSceneProps = {
   enableGPU: boolean;
+  statsParent: RefObject<HTMLElement>;
 };
 
-export default function ViewportScene({ enableGPU }: ViewportSceneProps) {
+export default function ViewportScene({
+  enableGPU,
+  statsParent,
+}: ViewportSceneProps) {
   return (
     <Canvas enableGPU={enableGPU}>
+      <color attach="background" args={["#0f1117"]} />
       <Sky />
-      {!isMobile ? (
-        <Environment preset="warehouse" environmentIntensity={1.1} />
-      ) : null}
       <ambientLight intensity={isMobile ? 1.2 : 0.6} />
       <directionalLight position={[3, 4, 5]} intensity={isMobile ? 1.4 : 1.2} />
       <Controls />
-      <Model enableGPU={enableGPU} />
+      <Suspense fallback={null}>
+        <Model enableGPU={enableGPU} />
+      </Suspense>
       {!isMobile ? (
-        <StatsGl className="absolute bottom-4 right-4 z-30" />
+        <StatsGl
+          parent={statsParent}
+          className="absolute bottom-4 right-4 z-30"
+          clearStatsGlStyle
+        />
       ) : null}
     </Canvas>
   );

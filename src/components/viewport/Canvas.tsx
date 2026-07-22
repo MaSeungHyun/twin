@@ -37,6 +37,7 @@ export default function Canvas({
         return new WebGLRenderer(rendererProps);
       }}
       frameloop="demand"
+      dpr={isMobileDevice() ? 1 : undefined}
       camera={{ position: INITIAL_CAMERA_POSITION }}
     >
       {children}
