@@ -2,6 +2,8 @@ import { Canvas as R3FCanvas, type Vector3 } from "@react-three/fiber";
 import { WebGLRenderer } from "three";
 import type { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPURenderer.Nodes.js";
 
+import { isMobileDevice } from "@/lib/device";
+
 const INITIAL_CAMERA_POSITION: Vector3 = [3, 3, 5];
 
 type CanvasProps = {
@@ -17,15 +19,22 @@ export default function Canvas({
     <R3FCanvas
       key={enableGPU ? "gpu" : "cpu"}
       gl={async (props) => {
+        const mobile = isMobileDevice();
+        const rendererProps = {
+          ...props,
+          powerPreference: mobile ? "low-power" : "default",
+          antialias: !mobile,
+        } as typeof props;
+
         if (enableGPU) {
           const { WebGPURenderer } = await import("three/webgpu");
           const renderer = new WebGPURenderer(
-            props as unknown as WebGPURendererParameters,
+            rendererProps as unknown as WebGPURendererParameters,
           );
           await renderer.init();
           return renderer;
         }
-        return new WebGLRenderer(props);
+        return new WebGLRenderer(rendererProps);
       }}
       frameloop="demand"
       camera={{ position: INITIAL_CAMERA_POSITION }}

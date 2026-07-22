@@ -1,3 +1,5 @@
+import { useGLTF } from "@react-three/drei";
+
 import { MODEL_OPTIONS, useModelStore } from "@/stores/modelStore";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +27,7 @@ export default function ModelSelector() {
                 ? "border-accent bg-accent/20 text-text"
                 : "border-border bg-bg/85 text-muted hover:border-white/20 hover:bg-bg/90 hover:text-text",
             )}
+            onPointerEnter={() => useGLTF.preload(option.url)}
             onClick={() => selectModel(option.id)}
           >
             {option.label}

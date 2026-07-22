@@ -1,13 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { Light, type Object3D } from 'three'
 
-import { MODEL_OPTIONS } from '@/assets/model'
 import { useModelStore } from '@/stores/modelStore'
-
-for (const option of MODEL_OPTIONS) {
-  useGLTF.preload(option.url, true)
-}
 
 function collectLights(root: Object3D) {
   const lights: Light[] = []
@@ -27,6 +22,12 @@ function stripAllLights(root: Object3D) {
 
 function ModelScene({ url }: { url: string }) {
   const { scene } = useGLTF(url)
+
+  useEffect(() => {
+    return () => {
+      useGLTF.clear(url)
+    }
+  }, [url])
 
   const modelScene = useMemo(() => {
     const clone = scene.clone(true)

@@ -5,6 +5,9 @@ import Controls from "./Controls";
 import Fallback from "./Fallback";
 import Model from "../model/Model";
 import ModelSelector from "../model/ModelSelector";
+import { isMobileDevice } from "@/lib/device";
+
+const isMobile = isMobileDevice();
 
 export default function Viewport() {
   const [enableGPU, setEnableGPU] = useState(false);
@@ -31,14 +34,18 @@ export default function Viewport() {
       <ModelSelector />
       <Canvas enableGPU={enableGPU}>
         <Sky />
-        <Environment preset="warehouse" environmentIntensity={1.1} />
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[3, 4, 5]} intensity={1.2} />
+        {!isMobile ? (
+          <Environment preset="warehouse" environmentIntensity={1.1} />
+        ) : null}
+        <ambientLight intensity={isMobile ? 1.2 : 0.6} />
+        <directionalLight position={[3, 4, 5]} intensity={isMobile ? 1.4 : 1.2} />
         <Controls />
         <Suspense fallback={<Fallback />}>
           <Model enableGPU={enableGPU} />
         </Suspense>
-        <StatsGl className="absolute bottom-4 right-4 z-30" />
+        {!isMobile ? (
+          <StatsGl className="absolute bottom-4 right-4 z-30" />
+        ) : null}
       </Canvas>
     </div>
   );
