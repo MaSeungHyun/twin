@@ -3,6 +3,7 @@ import { WebGLRenderer } from "three";
 import type { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPURenderer.Nodes.js";
 
 import { isMobileDevice } from "@/lib/device";
+import { bindGltfRenderer } from "@/three/gltfLoader";
 
 const INITIAL_CAMERA_POSITION: Vector3 = [3, 3, 5];
 
@@ -38,6 +39,11 @@ export default function Canvas({
       }}
       frameloop="demand"
       dpr={isMobileDevice() ? 1 : undefined}
+      onCreated={({ gl }) => {
+        if (gl instanceof WebGLRenderer) {
+          bindGltfRenderer(gl);
+        }
+      }}
       camera={{ position: INITIAL_CAMERA_POSITION }}
     >
       {children}

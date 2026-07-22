@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "node scripts/copy-basis.mjs",
+    "copy:basis": "node scripts/copy-basis.mjs",
+    "optimize:glb": "node scripts/optimize-glb.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -23,6 +26,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "^4.4.1",
     "@types/node": "^24.0.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
