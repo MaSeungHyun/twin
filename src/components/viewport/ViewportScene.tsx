@@ -20,7 +20,7 @@ export default function ViewportScene({
   return (
     <Canvas enableGPU={enableGPU}>
       <color attach="background" args={["#0f1117"]} />
-      <Sky />
+      {/* <Sky /> */}
       <ambientLight intensity={isMobile ? 1.2 : 0.6} />
       <directionalLight position={[3, 4, 5]} intensity={isMobile ? 1.4 : 1.2} />
       <Controls />
