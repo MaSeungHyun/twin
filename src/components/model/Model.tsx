@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { Light, type Object3D } from "three";
+import { Light, WebGLRenderer, type Object3D } from "three";
 
 import { useModelStore } from "@/stores/modelStore";
 import { releaseGltf } from "@/three/disposeGltf";
@@ -11,6 +11,11 @@ import {
   extendGltfLoader,
 } from "@/three/gltfLoader";
 
+declare global {
+  interface Window {
+    renderer: WebGLRenderer;
+  }
+}
 function collectLights(root: Object3D) {
   const lights: Light[] = [];
   root.traverse((obj) => {
