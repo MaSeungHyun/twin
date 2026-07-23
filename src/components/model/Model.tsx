@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useGLTF } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
@@ -18,6 +18,9 @@ import { isMobileDevice } from "@/lib/device";
 
 /** true면 텍스처 없이 베이스 컬러만 렌더 (VRAM 비교용) */
 const RENDER_WITHOUT_TEXTURES = true;
+
+/** scene 인스턴스당 1회만 전처리 (useGLTF 캐시 공유) */
+const preparedScenes = new WeakSet<Object3D>();
 
 declare global {
   interface Window {
@@ -52,6 +55,30 @@ function stripAllLights(root: Object3D) {
   }
 }
 
+/** primitive에 넣기 전 동기 전처리 — 첫 페인트에 텍스처가 안 보이게 */
+function prepareScene(scene: Object3D, url: string) {
+  if (preparedScenes.has(scene)) return scene;
+
+  stripAllLights(scene);
+  const dedupe = dedupeGltfResources(scene);
+  const instancing = convertRepeatedMeshesToInstanced(scene);
+
+  if (RENDER_WITHOUT_TEXTURES) {
+    const stripped = stripAllTextures(scene);
+    console.log("[Model] Textures stripped (pre-primitive)", {
+      url,
+      ...stripped,
+    });
+  } else {
+    applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
+  }
+
+  console.log("[Model] Dedupe", { url, ...dedupe });
+  console.log("[Model] Instancing", { url, ...instancing });
+  preparedScenes.add(scene);
+  return scene;
+}
+
 type SceneHold = {
   url: string;
   scene: Object3D;
@@ -68,8 +95,12 @@ function ModelScene({
   const invalidate = useThree((s) => s.invalidate);
   const gl = useThree((s) => s.gl) as WebGLRenderer;
   const gltf = useGLTF(url, GLTF_USE_DRACO, GLTF_USE_MESHOPT, extendGltfLoader);
-  const { scene } = gltf;
-  const readyLoggedRef = useRef<string | null>(null);
+
+  // useEffect 후처리 X — render 단계에서 준비한 뒤 primitive에 전달
+  const scene = useMemo(
+    () => prepareScene(gltf.scene, url),
+    [gltf.scene, url],
+  );
 
   useEffect(() => {
     window.renderer = gl;
@@ -81,29 +112,12 @@ function ModelScene({
       scene,
       gltf: { scene: gltf.scene, scenes: gltf.scenes },
     };
-    stripAllLights(scene);
-
-    if (readyLoggedRef.current !== url) {
-      readyLoggedRef.current = url;
-      const dedupe = dedupeGltfResources(scene);
-      const instancing = convertRepeatedMeshesToInstanced(scene);
-      if (RENDER_WITHOUT_TEXTURES) {
-        const stripped = stripAllTextures(scene);
-        console.log("[Model] Textures stripped", { url, ...stripped });
-      } else {
-        applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
+    invalidate();
+    requestAnimationFrame(() => {
+      if (holdRef.current?.url === url) {
+        logRendererInfo("After load", gl, { url });
       }
-      console.log("[Model] Dedupe", { url, ...dedupe });
-      console.log("[Model] Instancing", { url, ...instancing });
-      invalidate();
-      requestAnimationFrame(() => {
-        if (holdRef.current?.url === url) {
-          logRendererInfo("After load", gl, { url });
-        }
-      });
-    } else {
-      invalidate();
-    }
+    });
   }, [scene, gltf, invalidate, gl, url, holdRef]);
 
   return <primitive object={scene} />;
@@ -111,7 +125,6 @@ function ModelScene({
 
 /**
  * 언마운트(렌더 트리 제거) → 1프레임 → dispose → gap → load
- * dispose를 먼저 하면 같은 프레임 렌더가 disposed geo를 다시 upload함
  */
 export default function Model() {
   const selectedUrl = useModelStore((s) => s.selectedUrl);
@@ -133,7 +146,6 @@ export default function Model() {
       logRendererInfo("Before switch", gl, { from: prevUrl, to: selectedUrl });
     }
 
-    // 1) 먼저 React 트리에서 제거 (더 이상 렌더되지 않음)
     holdRef.current = null;
     flushSync(() => {
       setDisplayUrl(null);
@@ -143,7 +155,6 @@ export default function Model() {
     let raf2 = 0;
     let timer = 0;
 
-    // 2) 커밋·렌더 1프레임 지난 뒤 dispose (재upload 방지)
     raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
         if (switchId !== switchIdRef.current) return;
@@ -160,7 +171,6 @@ export default function Model() {
           logRendererInfo("After dispose", gl, { disposed: prevUrl });
         }
 
-        // 3) GC 여유 후 새 모델 로드
         timer = window.setTimeout(() => {
           if (switchId !== switchIdRef.current) return;
           if (window.renderer) {
