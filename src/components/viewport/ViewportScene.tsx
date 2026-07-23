@@ -1,4 +1,4 @@
-import { Environment, Sky } from "@react-three/drei";
+import { Environment } from "@react-three/drei";
 
 import { isMobileDevice } from "@/lib/device";
 
@@ -7,7 +7,6 @@ import WasteModels from "../model/WasteModels";
 import CameraFlyer from "./CameraFlyer";
 import Canvas from "./Canvas";
 import Controls from "./Controls";
-import { Color, Scene } from "three";
 
 export default function ViewportScene() {
   const mobile = isMobileDevice();
@@ -15,8 +14,7 @@ export default function ViewportScene() {
 
   return (
     <Canvas>
-      <scene background={new Color(0x000000)}></scene>
-      {/* <Sky /> */}
+      <color attach="background" args={["#000000"]} />
       <Environment preset="city" environmentIntensity={0.5} />
       <directionalLight
         castShadow
