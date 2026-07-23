@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useProgress } from "@react-three/drei";
 
 import ModelSelector from "../model/ModelSelector";
-import { useWasteModelStore } from "@/stores/wasteModelStore";
 
 import Fallback from "./Fallback";
 import ViewportScene from "./ViewportScene";
@@ -23,10 +22,6 @@ function ModelLoadingOverlay() {
 }
 
 export default function Viewport() {
-  const spawn = useWasteModelStore((s) => s.spawn);
-  const clear = useWasteModelStore((s) => s.clear);
-  const count = useWasteModelStore((s) => s.instances.length);
-
   return (
     <div className="relative flex flex-1 w-full h-full">
       <ModelSelector />
