@@ -9,7 +9,7 @@ export default function ModelSelector() {
 
   return (
     <div
-      className="pointer-events-auto absolute top-4 left-10 z-2 flex flex-wrap gap-2"
+      className="pointer-events-auto absolute top-12 left-10 z-2 flex flex-wrap gap-2"
       aria-label="Model selection"
     >
       {MODEL_OPTIONS.map((option) => {

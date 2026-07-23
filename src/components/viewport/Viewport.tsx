@@ -30,24 +30,7 @@ export default function Viewport() {
   return (
     <div className="relative flex flex-1 w-full h-full">
       <ModelSelector />
-      <div className="pointer-events-auto absolute top-4 right-10 z-2 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="cursor-pointer rounded-full border border-border bg-bg/85 px-3 py-1.5 text-xs text-muted backdrop-blur-md hover:border-white/20 hover:bg-bg/90 hover:text-text"
-          onClick={() => spawn()}
-        >
-          Add model02 ({count})
-        </button>
-        {count > 0 ? (
-          <button
-            type="button"
-            className="cursor-pointer rounded-full border border-border bg-bg/85 px-3 py-1.5 text-xs text-muted backdrop-blur-md hover:border-white/20 hover:bg-bg/90 hover:text-text"
-            onClick={() => clear()}
-          >
-            Clear waste
-          </button>
-        ) : null}
-      </div>
+
       <ModelLoadingOverlay />
       <ViewportScene />
     </div>

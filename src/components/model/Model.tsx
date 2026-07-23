@@ -84,6 +84,8 @@ function ModelScene({
   const gl = useThree((s) => s.gl) as WebGLRenderer;
   const gltf = useGLTF(url, GLTF_USE_DRACO, GLTF_USE_MESHOPT, extendGltfLoader);
 
+  console.log(gltf);
+
   // useEffect 후처리 X — render 단계에서 준비한 뒤 primitive에 전달
   const scene = useMemo(() => prepareScene(gltf.scene, url), [gltf.scene, url]);
 
