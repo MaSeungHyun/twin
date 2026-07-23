@@ -11,7 +11,7 @@ export default function Controls(): React.ReactNode {
       makeDefault
       enableDamping={false}
       minDistance={mobile ? 5 : 2}
-      maxDistance={500}
+      maxDistance={2500}
       zoomSpeed={mobile ? 0.6 : 0.9}
       rotateSpeed={mobile ? 0.7 : 1}
       panSpeed={mobile ? 0.6 : 1}

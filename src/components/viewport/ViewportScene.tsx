@@ -1,22 +1,26 @@
-import { Suspense } from "react";
+import { Environment, Sky } from "@react-three/drei";
 
 import { isMobileDevice } from "@/lib/device";
 
-import Model from "../model/Model";
+import ModelGallery from "../model/ModelGallery";
 import WasteModels from "../model/WasteModels";
+import CameraFlyer from "./CameraFlyer";
 import Canvas from "./Canvas";
 import Controls from "./Controls";
-import { StatsGl } from "@react-three/drei";
+import { Color, Scene } from "three";
 
 export default function ViewportScene() {
-  const shadowMap = isMobileDevice() ? 1024 : 2048;
+  const mobile = isMobileDevice();
+  const shadowMap = mobile ? 1024 : 2048;
 
   return (
     <Canvas>
-      <ambientLight intensity={0.55} />
+      <scene background={new Color(0x000000)}></scene>
+      {/* <Sky /> */}
+      <Environment preset="city" environmentIntensity={0.5} />
       <directionalLight
         castShadow
-        position={[12, 22, 10]}
+        position={[12, 2.5, 3]}
         intensity={1.55}
         shadow-mapSize={[shadowMap, shadowMap]}
         shadow-bias={-0.0002}
@@ -29,11 +33,9 @@ export default function ViewportScene() {
         shadow-camera-bottom={-40}
       />
       <Controls />
-      <Suspense fallback={null}>
-        <Model />
-      </Suspense>
+      <CameraFlyer />
+      <ModelGallery />
       <WasteModels />
-      <StatsGl className="absolute bottom-2 right-12 z-2" />
     </Canvas>
   );
 }
