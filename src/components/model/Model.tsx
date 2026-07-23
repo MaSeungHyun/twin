@@ -8,13 +8,16 @@ import { useModelStore } from "@/stores/modelStore";
 import { dedupeGltfResources } from "@/three/dedupeGltf";
 import { releaseGltf } from "@/three/disposeGltf";
 import { convertRepeatedMeshesToInstanced } from "@/three/instancedMeshes";
-import { applyTextureBudget } from "@/three/textureBudget";
+import { applyTextureBudget, stripAllTextures } from "@/three/textureBudget";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
   extendGltfLoader,
 } from "@/three/gltfLoader";
 import { isMobileDevice } from "@/lib/device";
+
+/** true면 텍스처 없이 베이스 컬러만 렌더 (VRAM 비교용) */
+const RENDER_WITHOUT_TEXTURES = true;
 
 declare global {
   interface Window {
@@ -84,7 +87,12 @@ function ModelScene({
       readyLoggedRef.current = url;
       const dedupe = dedupeGltfResources(scene);
       const instancing = convertRepeatedMeshesToInstanced(scene);
-      applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
+      if (RENDER_WITHOUT_TEXTURES) {
+        const stripped = stripAllTextures(scene);
+        console.log("[Model] Textures stripped", { url, ...stripped });
+      } else {
+        applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
+      }
       console.log("[Model] Dedupe", { url, ...dedupe });
       console.log("[Model] Instancing", { url, ...instancing });
       invalidate();
