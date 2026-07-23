@@ -8,7 +8,7 @@ import { useModelStore } from "@/stores/modelStore";
 import { dedupeGltfResources } from "@/three/dedupeGltf";
 import { releaseGltf } from "@/three/disposeGltf";
 import { convertRepeatedMeshesToInstanced } from "@/three/instancedMeshes";
-import { applyTextureBudget, stripAllTextures } from "@/three/textureBudget";
+import { applyTextureBudget, applySharedBasicMaterial } from "@/three/textureBudget";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
@@ -16,8 +16,8 @@ import {
 } from "@/three/gltfLoader";
 import { isMobileDevice } from "@/lib/device";
 
-/** true면 텍스처 없이 베이스 컬러만 렌더 (VRAM 비교용) */
-const RENDER_WITHOUT_TEXTURES = true;
+/** true면 전 메쉬에 MeshBasicMaterial 1개만 적용 (임시 진단용) */
+const USE_SHARED_BASIC_MATERIAL = true;
 
 /** scene 인스턴스당 1회만 전처리 (useGLTF 캐시 공유) */
 const preparedScenes = new WeakSet<Object3D>();
@@ -63,12 +63,9 @@ function prepareScene(scene: Object3D, url: string) {
   const dedupe = dedupeGltfResources(scene);
   const instancing = convertRepeatedMeshesToInstanced(scene);
 
-  if (RENDER_WITHOUT_TEXTURES) {
-    const stripped = stripAllTextures(scene);
-    console.log("[Model] Textures stripped (pre-primitive)", {
-      url,
-      ...stripped,
-    });
+  if (USE_SHARED_BASIC_MATERIAL) {
+    const basic = applySharedBasicMaterial(scene, 0xffffff);
+    console.log("[Model] Shared MeshBasicMaterial", { url, ...basic });
   } else {
     applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
   }
@@ -97,10 +94,7 @@ function ModelScene({
   const gltf = useGLTF(url, GLTF_USE_DRACO, GLTF_USE_MESHOPT, extendGltfLoader);
 
   // useEffect 후처리 X — render 단계에서 준비한 뒤 primitive에 전달
-  const scene = useMemo(
-    () => prepareScene(gltf.scene, url),
-    [gltf.scene, url],
-  );
+  const scene = useMemo(() => prepareScene(gltf.scene, url), [gltf.scene, url]);
 
   useEffect(() => {
     window.renderer = gl;
