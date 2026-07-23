@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { GalleryModelId } from "@/assets/model";
+import { GALLERY_MODELS, type GalleryModelId } from "@/assets/model";
 
 export type Vec3 = [number, number, number];
 
@@ -9,22 +9,24 @@ export type CameraFocus = {
   position: Vec3;
 };
 
-type ViewMode = "overview" | "solo";
+export const DEFAULT_GALLERY_ID: GalleryModelId =
+  GALLERY_MODELS[0]?.id ?? "model_32";
 
 type CameraState = {
   focuses: Partial<Record<GalleryModelId, CameraFocus>>;
-  activeId: GalleryModelId | null;
+  activeId: GalleryModelId;
   pendingSoloId: GalleryModelId | null;
   warmingId: GalleryModelId | null;
-  viewMode: ViewMode;
-  soloId: GalleryModelId | null;
+  soloId: GalleryModelId;
   goal: CameraFocus | null;
   isFlying: boolean;
+  /** 최초 카메라 스냅 완료 여부 */
+  didInitialSnap: boolean;
   registerFocus: (focus: CameraFocus) => void;
   notifyReady: (id: GalleryModelId) => void;
   flyTo: (id: GalleryModelId) => void;
   onArrive: () => void;
-  showOverview: () => void;
+  markInitialSnap: () => void;
   reset: () => void;
 };
 
@@ -40,18 +42,20 @@ function startFlight(id: GalleryModelId, focus: CameraFocus) {
 
 export const useCameraStore = create<CameraState>((set, get) => ({
   focuses: {},
-  activeId: null,
+  activeId: DEFAULT_GALLERY_ID,
   pendingSoloId: null,
   warmingId: null,
-  viewMode: "overview",
-  soloId: null,
+  soloId: DEFAULT_GALLERY_ID,
   goal: null,
   isFlying: false,
+  didInitialSnap: false,
 
   registerFocus: (focus) =>
     set((state) => ({
       focuses: { ...state.focuses, [focus.id]: focus },
     })),
+
+  markInitialSnap: () => set({ didInitialSnap: true }),
 
   notifyReady: (id) => {
     const { warmingId, pendingSoloId, focuses, goal, isFlying } = get();
@@ -63,9 +67,11 @@ export const useCameraStore = create<CameraState>((set, get) => ({
   },
 
   flyTo: (id) => {
-    const focus = get().focuses[id];
+    const { soloId, focuses, isFlying } = get();
+    if (isFlying || id === soloId) return;
+
+    const focus = focuses[id];
     if (focus) {
-      // 이미 로드·포커스된 모델 → 즉시 비행 (재요청 없음)
       set(startFlight(id, focus));
       return;
     }
@@ -87,34 +93,22 @@ export const useCameraStore = create<CameraState>((set, get) => ({
     set({
       goal: null,
       isFlying: false,
-      viewMode: "solo",
       soloId: pendingSoloId,
+      activeId: pendingSoloId,
       pendingSoloId: null,
       warmingId: null,
-    });
-  },
-
-  showOverview: () => {
-    set({
-      viewMode: "overview",
-      soloId: null,
-      pendingSoloId: null,
-      warmingId: null,
-      activeId: null,
-      goal: null,
-      isFlying: false,
     });
   },
 
   reset: () =>
     set({
       focuses: {},
-      activeId: null,
+      activeId: DEFAULT_GALLERY_ID,
       pendingSoloId: null,
       warmingId: null,
-      viewMode: "overview",
-      soloId: null,
+      soloId: DEFAULT_GALLERY_ID,
       goal: null,
       isFlying: false,
+      didInitialSnap: false,
     }),
 }));

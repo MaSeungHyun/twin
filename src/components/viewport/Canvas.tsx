@@ -1,8 +1,9 @@
 import { Canvas as R3FCanvas, type Vector3 } from "@react-three/fiber";
-import type { WebGLRenderer } from "three";
+import { CullFaceFront, PCFSoftShadowMap, type WebGLRenderer } from "three";
 
 import { isMobileDevice } from "@/lib/device";
 import { bindGltfRenderer } from "@/three/gltfLoader";
+import { BakeShadows } from "@react-three/drei";
 
 const INITIAL_CAMERA_POSITION: Vector3 = [3, 3, 5];
 
@@ -25,8 +26,7 @@ export default function Canvas({ children }: CanvasProps): React.ReactNode {
       dpr={cappedDpr()}
       gl={{
         antialias: !mobile,
-        powerPreference: mobile ? "low-power" : "default",
-
+        powerPreference: mobile ? "low-power" : "high-performance",
         stencil: false,
         depth: true,
       }}

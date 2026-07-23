@@ -2,7 +2,6 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
-  Light,
   Mesh,
   type Group,
   type Material,
@@ -16,7 +15,6 @@ import {
 } from "@/assets/model";
 import { isMobileDevice } from "@/lib/device";
 import { useCameraStore } from "@/stores/cameraStore";
-import { useLightBankStore, type DetachedLight } from "@/stores/lightBankStore";
 import { dedupeGltfResources } from "@/three/dedupeGltf";
 import { convertRepeatedMeshesToInstanced } from "@/three/instancedMeshes";
 import {
@@ -28,31 +26,20 @@ import { applyTextureBudget } from "@/three/textureBudget";
 
 import { computeFocusFromObject } from "../viewport/CameraFlyer";
 
+/** 앱 시작 시 갤러리 GLB 전부 프리로드 (클릭 전에 받기) */
+for (const model of GALLERY_MODELS) {
+  useGLTF.preload(
+    getModelUrl(model.id),
+    GLTF_USE_DRACO,
+    GLTF_USE_MESHOPT,
+    extendGltfLoader,
+  );
+}
+
 const preparedScenes = new WeakSet<Object3D>();
-const detachedLightsByScene = new WeakMap<Object3D, DetachedLight[]>();
 
 type MatBackup = { opacity: number; transparent: boolean };
 const matBackup = new WeakMap<Material, MatBackup>();
-
-function collectLights(root: Object3D) {
-  const lights: Light[] = [];
-  root.traverse((obj) => {
-    if ((obj as Light).isLight) lights.push(obj as Light);
-  });
-  return lights;
-}
-
-function detachAllLights(root: Object3D): DetachedLight[] {
-  const lights = collectLights(root);
-  const entries: DetachedLight[] = [];
-  for (const light of lights) {
-    const parent = light.parent;
-    if (!parent) continue;
-    parent.remove(light);
-    entries.push({ light, parent });
-  }
-  return entries;
-}
 
 function enableMeshShadows(root: Object3D) {
   root.traverse((obj) => {
@@ -62,17 +49,16 @@ function enableMeshShadows(root: Object3D) {
   });
 }
 
+/** GLB 라이트는 제한 없이 유지 */
 function prepareScene(scene: Object3D, url: string) {
   if (preparedScenes.has(scene)) return scene;
 
-  const lights = detachAllLights(scene);
-  detachedLightsByScene.set(scene, lights);
   dedupeGltfResources(scene);
   convertRepeatedMeshesToInstanced(scene);
   enableMeshShadows(scene);
   applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
 
-  console.log("[Gallery] prepared", { url, lights: lights.length });
+  console.log("[Gallery] prepared", { url });
   preparedScenes.add(scene);
   return scene;
 }
@@ -175,45 +161,29 @@ function GalleryModel({
   );
 }
 
+/** 활성·비행 대상만 표시. 나머지는 마운트/로드 유지 + visible=false */
 function isShown(
   id: GalleryModelId,
-  viewMode: "overview" | "solo",
-  soloId: GalleryModelId | null,
+  soloId: GalleryModelId,
   pendingSoloId: GalleryModelId | null,
-  activeId: GalleryModelId | null,
+  activeId: GalleryModelId,
   isFlying: boolean,
 ): boolean {
-  // 전부 마운트 유지. overview / 비행 중에는 보이고, solo에선 대상만 표시
-  if (viewMode === "overview") return true;
   if (isFlying) {
-    return (
-      id === soloId ||
-      id === pendingSoloId ||
-      id === activeId
-    );
+    return id === soloId || id === pendingSoloId || id === activeId;
   }
   return id === soloId;
 }
 
 export default function ModelGallery() {
-  const viewMode = useCameraStore((s) => s.viewMode);
   const soloId = useCameraStore((s) => s.soloId);
   const pendingSoloId = useCameraStore((s) => s.pendingSoloId);
   const isFlying = useCameraStore((s) => s.isFlying);
   const activeId = useCameraStore((s) => s.activeId);
 
   useEffect(() => {
-    for (const model of GALLERY_MODELS) {
-      useGLTF.preload(
-        getModelUrl(model.id),
-        GLTF_USE_DRACO,
-        GLTF_USE_MESHOPT,
-        extendGltfLoader,
-      );
-    }
     return () => {
       useCameraStore.getState().reset();
-      useLightBankStore.getState().reset();
     };
   }, []);
 
@@ -222,7 +192,6 @@ export default function ModelGallery() {
       {GALLERY_MODELS.map((model) => {
         const shown = isShown(
           model.id,
-          viewMode,
           soloId,
           pendingSoloId,
           activeId,

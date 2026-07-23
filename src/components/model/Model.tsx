@@ -2,10 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useGLTF } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { Light, Mesh, type Object3D, type WebGLRenderer } from "three";
+import { Mesh, type Object3D, type WebGLRenderer } from "three";
 
 import { useModelStore } from "@/stores/modelStore";
-import { useLightBankStore, type DetachedLight } from "@/stores/lightBankStore";
 import { dedupeGltfResources } from "@/three/dedupeGltf";
 import { releaseGltf } from "@/three/disposeGltf";
 import { convertRepeatedMeshesToInstanced } from "@/three/instancedMeshes";
@@ -19,7 +18,6 @@ import { isMobileDevice } from "@/lib/device";
 
 /** scene 인스턴스당 1회만 전처리 (useGLTF 캐시 공유) */
 const preparedScenes = new WeakSet<Object3D>();
-const detachedLightsByScene = new WeakMap<Object3D, DetachedLight[]>();
 
 declare global {
   interface Window {
@@ -39,29 +37,6 @@ function logRendererInfo(label: string, gl: WebGLRenderer, extra?: object) {
   });
 }
 
-function collectLights(root: Object3D) {
-  const lights: Light[] = [];
-  root.traverse((obj) => {
-    if ((obj as Light).isLight) lights.push(obj as Light);
-  });
-  return lights;
-}
-
-/** 씬에서 분리만 하고 dispose 하지 않음 — 버튼으로 하나씩 재부착 */
-function detachAllLights(root: Object3D): DetachedLight[] {
-  const lights = collectLights(root);
-  const entries: DetachedLight[] = [];
-
-  for (const light of lights) {
-    const parent = light.parent;
-    if (!parent) continue;
-    parent.remove(light);
-    entries.push({ light, parent });
-  }
-
-  return entries;
-}
-
 function enableMeshShadows(root: Object3D) {
   root.traverse((obj) => {
     if (!(obj as Mesh).isMesh) return;
@@ -70,19 +45,15 @@ function enableMeshShadows(root: Object3D) {
   });
 }
 
-/** primitive에 넣기 전 동기 전처리 */
+/** primitive에 넣기 전 동기 전처리 — GLB 라이트 제한 없음 */
 function prepareScene(scene: Object3D, url: string) {
   if (preparedScenes.has(scene)) return scene;
-
-  const lights = detachAllLights(scene);
-  detachedLightsByScene.set(scene, lights);
 
   const dedupe = dedupeGltfResources(scene);
   const instancing = convertRepeatedMeshesToInstanced(scene);
   enableMeshShadows(scene);
   applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
 
-  console.log("[Model] Lights detached", { url, count: lights.length });
   console.log("[Model] Dedupe", { url, ...dedupe });
   console.log("[Model] Instancing", { url, ...instancing });
   preparedScenes.add(scene);
@@ -106,23 +77,11 @@ function ModelScene({
   const gl = useThree((s) => s.gl) as WebGLRenderer;
   const gltf = useGLTF(url, GLTF_USE_DRACO, GLTF_USE_MESHOPT, extendGltfLoader);
 
-  console.log(gltf);
-
-  // useEffect 후처리 X — render 단계에서 준비한 뒤 primitive에 전달
   const scene = useMemo(() => prepareScene(gltf.scene, url), [gltf.scene, url]);
 
   useEffect(() => {
     window.renderer = gl;
   }, [gl]);
-
-  useEffect(() => {
-    const entries = detachedLightsByScene.get(scene) ?? [];
-    useLightBankStore.getState().setBank(entries);
-
-    return () => {
-      useLightBankStore.getState().reset();
-    };
-  }, [scene]);
 
   useEffect(() => {
     holdRef.current = {
@@ -137,11 +96,6 @@ function ModelScene({
       }
     });
   }, [scene, gltf, invalidate, gl, url, holdRef]);
-
-  const activeCount = useLightBankStore((s) => s.activeCount);
-  useEffect(() => {
-    invalidate();
-  }, [activeCount, invalidate]);
 
   return <primitive object={scene} />;
 }

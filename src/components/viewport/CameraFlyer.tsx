@@ -5,7 +5,11 @@ import type { Object3D } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 import type { GalleryModelId } from "@/assets/model";
-import { useCameraStore, type CameraFocus } from "@/stores/cameraStore";
+import {
+  DEFAULT_GALLERY_ID,
+  useCameraStore,
+  type CameraFocus,
+} from "@/stores/cameraStore";
 
 const _cam = new Vector3();
 const _target = new Vector3();
@@ -18,12 +22,28 @@ function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-/** 오브젝트 중점에 가깝게 보도록 focus 계산 */
+/** 숨긴 메쉬도 포함해 바운딩 계산 (visible=false여도 focus 등록) */
 export function computeFocusFromObject(
   id: GalleryModelId,
   object: Object3D,
 ): CameraFocus {
-  const box = new Box3().setFromObject(object);
+  const box = new Box3();
+  object.updateWorldMatrix(true, true);
+  object.traverse((child) => {
+    const mesh = child as import("three").Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const geoBox = mesh.geometry.boundingBox;
+    if (!geoBox) return;
+    const world = geoBox.clone();
+    world.applyMatrix4(mesh.matrixWorld);
+    box.union(world);
+  });
+
+  if (box.isEmpty()) {
+    box.setFromObject(object);
+  }
+
   const center = box.getCenter(new Vector3());
   const size = box.getSize(new Vector3());
   const radius = Math.max(size.x, size.y, size.z, 1) * 0.5;
@@ -41,14 +61,28 @@ export function computeFocusFromObject(
   };
 }
 
-/** duration + easeInOut으로 카메라 이동 → 도착 시 solo 전환 */
+/** 초기 스냅 + duration 비행 */
 export default function CameraFlyer() {
   const goal = useCameraStore((s) => s.goal);
   const onArrive = useCameraStore((s) => s.onArrive);
+  const defaultFocus = useCameraStore(
+    (s) => s.focuses[DEFAULT_GALLERY_ID] ?? null,
+  );
+  const didInitialSnap = useCameraStore((s) => s.didInitialSnap);
+  const markInitialSnap = useCameraStore((s) => s.markInitialSnap);
   const camera = useThree((s) => s.camera);
   const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
   const progress = useRef(0);
   const flying = useRef(false);
+
+  // model_32 로드되면 카메라 즉시 맞춤
+  useEffect(() => {
+    if (didInitialSnap || !defaultFocus || !controls) return;
+    camera.position.set(...defaultFocus.position);
+    controls.target.set(...defaultFocus.target);
+    controls.update();
+    markInitialSnap();
+  }, [didInitialSnap, defaultFocus, camera, controls, markInitialSnap]);
 
   useEffect(() => {
     if (!goal || !controls) return;
