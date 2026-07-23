@@ -21,6 +21,7 @@ export default function Canvas({ children }: CanvasProps): React.ReactNode {
 
   return (
     <R3FCanvas
+      shadows
       dpr={cappedDpr()}
       gl={{
         antialias: !mobile,

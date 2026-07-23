@@ -5,8 +5,8 @@ export const config = {
 const RELEASE_TAG = 'v0.0.0';
 const REPO = 'MaSeungHyun/twin';
 
-/** model.glb, model_1024.glb, model_2048.glb 등 */
-const MODEL_FILE_PATTERN = /^model(_\d+)?\.glb$/;
+/** model_32.glb, model_city_128.glb 등 */
+const MODEL_FILE_PATTERN = /^model(_[a-z0-9]+)*\.glb$/i;
 
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',

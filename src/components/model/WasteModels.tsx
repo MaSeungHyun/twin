@@ -48,6 +48,10 @@ function disposeObject(root: Object3D) {
 function cloneUnshared(source: Object3D): Object3D {
   const clone = source.clone(true)
   clone.traverse((obj) => {
+    if ((obj as Mesh).isMesh) {
+      obj.castShadow = true
+      obj.receiveShadow = true
+    }
     if (!(obj as Mesh).isMesh) return
     const mesh = obj as Mesh
     mesh.geometry = mesh.geometry.clone() as BufferGeometry

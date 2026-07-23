@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useGLTF } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { Light, type Object3D, type WebGLRenderer } from "three";
+import { Light, Mesh, type Object3D, type WebGLRenderer } from "three";
 
 import { useModelStore } from "@/stores/modelStore";
 import { dedupeGltfResources } from "@/three/dedupeGltf";
@@ -52,6 +52,14 @@ function stripAllLights(root: Object3D) {
   }
 }
 
+function enableMeshShadows(root: Object3D) {
+  root.traverse((obj) => {
+    if (!(obj as Mesh).isMesh) return;
+    obj.castShadow = true;
+    obj.receiveShadow = true;
+  });
+}
+
 /** primitive에 넣기 전 동기 전처리 */
 function prepareScene(scene: Object3D, url: string) {
   if (preparedScenes.has(scene)) return scene;
@@ -59,6 +67,7 @@ function prepareScene(scene: Object3D, url: string) {
   stripAllLights(scene);
   const dedupe = dedupeGltfResources(scene);
   const instancing = convertRepeatedMeshesToInstanced(scene);
+  enableMeshShadows(scene);
   applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
 
   console.log("[Model] Dedupe", { url, ...dedupe });
