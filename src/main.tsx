@@ -1,13 +1,8 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { registerSW } from 'virtual:pwa-register'
-import App from './App'
-import './styles/global.css'
+import { createRoot } from "react-dom/client";
+import { registerSW } from "virtual:pwa-register";
+import App from "./App";
+import "./styles/global.css";
 
-registerSW({ immediate: true })
+registerSW({ immediate: true });
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+createRoot(document.getElementById("root")!).render(<App />);
