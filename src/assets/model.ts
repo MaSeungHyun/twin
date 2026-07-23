@@ -1,54 +1,21 @@
-export type ModelId =
-  | "model69"
-  | "model70"
-  | "model84"
-  | "model89"
-  | "model91"
-  | "model92"
-  | "model94"
-  | "model152"
-  | "model170"
-  | "model242";
+export type ModelId = "model" | "model_1024" | "model_2048";
 
 /** GitHub Release는 CORS 미지원 → /api/models 프록시 경유 (vite dev / Vercel Edge) */
 const MODEL_PROXY_BASE = "/api/models";
 
 const MODEL_URLS: Partial<Record<ModelId, string>> = {
-  model69: `${MODEL_PROXY_BASE}/model69.glb`,
-  model70: `${MODEL_PROXY_BASE}/model70.glb`,
-  model84: `${MODEL_PROXY_BASE}/model84.glb`,
-  model89: `${MODEL_PROXY_BASE}/model89.glb`,
-  model91: `${MODEL_PROXY_BASE}/model91.glb`,
-  model92: `${MODEL_PROXY_BASE}/model92.glb`,
-  model94: `${MODEL_PROXY_BASE}/model94.glb`,
-  model152: `${MODEL_PROXY_BASE}/model152.glb`,
-  model170: `${MODEL_PROXY_BASE}/model170.glb`,
-  model242: `${MODEL_PROXY_BASE}/model242.glb`,
+  model: `${MODEL_PROXY_BASE}/model.glb`,
+  model_1024: `${MODEL_PROXY_BASE}/model_1024.glb`,
+  model_2048: `${MODEL_PROXY_BASE}/model_2048.glb`,
 };
 
 export const MODEL_OPTIONS = [
-  { id: "model69" as const, label: "Model 69" },
-  { id: "model70" as const, label: "Model 70" },
-  { id: "model84" as const, label: "Model 84" },
-  { id: "model89" as const, label: "Model 89" },
-  { id: "model91" as const, label: "Model 91" },
-  { id: "model92" as const, label: "Model 92" },
-  { id: "model94" as const, label: "Model 94" },
-  { id: "model152" as const, label: "Model 152" },
-  { id: "model170" as const, label: "Model 170" },
-  { id: "model242" as const, label: "Model 242" },
-]
-  .map(({ id, label }) => ({
-    id,
-    label,
-    url: MODEL_URLS[id]?.trim() ?? "",
-  }))
-  .filter((option) => option.url.length > 0);
+  { id: "model" as const, label: "Model" },
+  { id: "model_1024" as const, label: "Model 1024" },
+  { id: "model_2048" as const, label: "Model 2048" },
+];
 
-export const DEFAULT_MODEL_ID: ModelId =
-  MODEL_OPTIONS.find((option) => option.id === "model69")?.id ??
-  MODEL_OPTIONS[0]?.id ??
-  "model69";
+export const DEFAULT_MODEL_ID: ModelId = MODEL_OPTIONS[0]?.id ?? "model";
 
 export function getModelUrl(id: ModelId): string {
   const url = MODEL_URLS[id]?.trim();

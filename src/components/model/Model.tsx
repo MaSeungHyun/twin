@@ -8,16 +8,13 @@ import { useModelStore } from "@/stores/modelStore";
 import { dedupeGltfResources } from "@/three/dedupeGltf";
 import { releaseGltf } from "@/three/disposeGltf";
 import { convertRepeatedMeshesToInstanced } from "@/three/instancedMeshes";
-import { applyTextureBudget, applySharedBasicMaterial } from "@/three/textureBudget";
+import { applyTextureBudget } from "@/three/textureBudget";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
   extendGltfLoader,
 } from "@/three/gltfLoader";
 import { isMobileDevice } from "@/lib/device";
-
-/** true면 전 메쉬에 MeshBasicMaterial 1개만 적용 (임시 진단용) */
-const USE_SHARED_BASIC_MATERIAL = true;
 
 /** scene 인스턴스당 1회만 전처리 (useGLTF 캐시 공유) */
 const preparedScenes = new WeakSet<Object3D>();
@@ -55,20 +52,14 @@ function stripAllLights(root: Object3D) {
   }
 }
 
-/** primitive에 넣기 전 동기 전처리 — 첫 페인트에 텍스처가 안 보이게 */
+/** primitive에 넣기 전 동기 전처리 */
 function prepareScene(scene: Object3D, url: string) {
   if (preparedScenes.has(scene)) return scene;
 
   stripAllLights(scene);
   const dedupe = dedupeGltfResources(scene);
   const instancing = convertRepeatedMeshesToInstanced(scene);
-
-  if (USE_SHARED_BASIC_MATERIAL) {
-    const basic = applySharedBasicMaterial(scene, 0xffffff);
-    console.log("[Model] Shared MeshBasicMaterial", { url, ...basic });
-  } else {
-    applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
-  }
+  applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
 
   console.log("[Model] Dedupe", { url, ...dedupe });
   console.log("[Model] Instancing", { url, ...instancing });
