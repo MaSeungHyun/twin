@@ -8,11 +8,13 @@ import { useModelStore } from "@/stores/modelStore";
 import { dedupeGltfResources } from "@/three/dedupeGltf";
 import { releaseGltf } from "@/three/disposeGltf";
 import { convertRepeatedMeshesToInstanced } from "@/three/instancedMeshes";
+import { applyTextureBudget } from "@/three/textureBudget";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
   extendGltfLoader,
 } from "@/three/gltfLoader";
+import { isMobileDevice } from "@/lib/device";
 
 declare global {
   interface Window {
@@ -63,9 +65,6 @@ function ModelScene({
   const invalidate = useThree((s) => s.invalidate);
   const gl = useThree((s) => s.gl) as WebGLRenderer;
   const gltf = useGLTF(url, GLTF_USE_DRACO, GLTF_USE_MESHOPT, extendGltfLoader);
-
-  console.log(gltf);
-
   const { scene } = gltf;
   const readyLoggedRef = useRef<string | null>(null);
 
@@ -85,6 +84,7 @@ function ModelScene({
       readyLoggedRef.current = url;
       const dedupe = dedupeGltfResources(scene);
       const instancing = convertRepeatedMeshesToInstanced(scene);
+      applyTextureBudget(scene, isMobileDevice() ? 1 : 2);
       console.log("[Model] Dedupe", { url, ...dedupe });
       console.log("[Model] Instancing", { url, ...instancing });
       invalidate();
