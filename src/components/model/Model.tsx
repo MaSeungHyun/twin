@@ -63,6 +63,9 @@ function ModelScene({
   const invalidate = useThree((s) => s.invalidate);
   const gl = useThree((s) => s.gl) as WebGLRenderer;
   const gltf = useGLTF(url, GLTF_USE_DRACO, GLTF_USE_MESHOPT, extendGltfLoader);
+
+  console.log(gltf);
+
   const { scene } = gltf;
   const readyLoggedRef = useRef<string | null>(null);
 
