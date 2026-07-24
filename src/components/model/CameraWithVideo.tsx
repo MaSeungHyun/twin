@@ -4,7 +4,12 @@ import { useCallback, useMemo, useRef } from "react";
 import { Group, type PerspectiveCamera } from "three";
 
 import { usePooledCctvVideo } from "@/hooks/usePooledCctvVideo";
-import { cctvAlarmLabel, getStableCctvAlarmSeverity } from "@/lib/cctvAlarm";
+import {
+  cctvAlarmBadgeClass,
+  cctvAlarmLabel,
+  cctvAlarmRingClass,
+  getStableCctvAlarmSeverity,
+} from "@/lib/cctvAlarm";
 import { acquireCctvVideo } from "@/lib/cctvVideoPool";
 import { cn } from "@/lib/utils";
 import { useCctvAlarmActive, useCctvAlarmStore } from "@/stores/cctvAlarmStore";
@@ -22,8 +27,8 @@ export default function CameraWithVideo({
   const groupRef = useRef<Group>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const alarmSeverity = useMemo(
-    () => getStableCctvAlarmSeverity(camera.uuid),
-    [camera.uuid],
+    () => getStableCctvAlarmSeverity(camera.name),
+    [camera.name],
   );
   const isAlarmActive = useCctvAlarmActive(camera.uuid);
   const dismissAlarm = useCctvAlarmStore((state) => state.dismiss);
@@ -32,6 +37,7 @@ export default function CameraWithVideo({
   const popupCameraId = useCctvPopupStore((state) => state.cameraId);
 
   const hostsVideo = !(isPopupOpen && popupCameraId === camera.uuid);
+  const markerVisible = !isPopupOpen;
 
   usePooledCctvVideo(videoContainerRef, videoSrc, hostsVideo, {
     className: "block aspect-video w-full bg-black object-cover",
@@ -72,8 +78,8 @@ export default function CameraWithVideo({
         transform
         zIndexRange={[100, 0]}
         style={{
-          pointerEvents: isPopupOpen ? "none" : "auto",
-          visibility: isPopupOpen ? "hidden" : "visible",
+          pointerEvents: markerVisible ? "auto" : "none",
+          visibility: markerVisible ? "visible" : "hidden",
         }}
       >
         <div
@@ -87,14 +93,8 @@ export default function CameraWithVideo({
             }
           }}
           className={cn(
-            "cctv-marker-panel bg-bg/95 w-[200px] cursor-pointer overflow-hidden rounded-md border shadow-lg transition-transform hover:scale-[5.02]",
-            isAlarmActive &&
-              alarmSeverity === "critical" &&
-              "cctv-marker-panel--critical",
-            isAlarmActive &&
-              alarmSeverity === "warning" &&
-              "cctv-marker-panel--warning",
-            !isAlarmActive && "border-border",
+            "bg-bg/95 w-[200px] touch-manipulation cursor-pointer overflow-hidden rounded-md border-2 shadow-lg transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-[5.02] [@media(hover:none)]:active:scale-[5.05]",
+            isAlarmActive ? cctvAlarmRingClass(alarmSeverity) : "border-border",
           )}
         >
           <div className="bg-accent/20 text-text flex items-center gap-1 px-2 py-1 text-xs font-semibold">
@@ -102,13 +102,7 @@ export default function CameraWithVideo({
             {isAlarmActive && (
               <button
                 type="button"
-                className={cn(
-                  "cctv-marker-panel__badge cursor-pointer",
-                  alarmSeverity === "critical" &&
-                    "cctv-marker-panel__badge--critical",
-                  alarmSeverity === "warning" &&
-                    "cctv-marker-panel__badge--warning",
-                )}
+                className={cctvAlarmBadgeClass(alarmSeverity)}
                 onClick={handleDismissAlarm}
                 aria-label={`Dismiss ${cctvAlarmLabel(alarmSeverity)} alarm`}
               >

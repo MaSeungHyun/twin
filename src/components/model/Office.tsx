@@ -44,7 +44,7 @@ function OfficeModel() {
   useEffect(() => {
     applyShadow();
   }, [gltf.scene]);
-  
+
   const { actions, mixer } = useAnimations(gltf.animations, group);
 
   const ceilingCommand = useOfficeStore((s) => s.ceilingCommand);
@@ -121,11 +121,7 @@ function OfficeModel() {
         const videoSrc = getOfficeCameraVideo(cam.name);
         if (!videoSrc) return null;
         return (
-          <CameraWithVideo
-            key={cam.uuid}
-            camera={cam}
-            videoSrc={videoSrc}
-          />
+          <CameraWithVideo key={cam.uuid} camera={cam} videoSrc={videoSrc} />
         );
       })}
     </group>

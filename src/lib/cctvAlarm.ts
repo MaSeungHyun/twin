@@ -2,6 +2,14 @@ import { cn } from "@/lib/utils";
 
 export type CctvAlarmSeverity = "critical" | "warning";
 
+/** GLB 카메라 name(소문자) → 알람 등급 */
+const ALARM_BY_CAMERA_NAME: Record<string, CctvAlarmSeverity> = {
+  office: "critical",
+  office2: "warning",
+  cafe: "warning",
+  camera: "critical",
+};
+
 function hashString(value: string): number {
   let hash = 0;
   for (let i = 0; i < value.length; i++) {
@@ -11,11 +19,10 @@ function hashString(value: string): number {
   return Math.abs(hash);
 }
 
-/** 카메라마다 고정된 알람 등급 (critical=빨강, warning=노랑) */
-export function getStableCctvAlarmSeverity(
-  cameraId: string,
-): CctvAlarmSeverity {
-  return hashString(cameraId) % 2 === 0 ? "critical" : "warning";
+export function getStableCctvAlarmSeverity(cameraName: string): CctvAlarmSeverity {
+  const mapped = ALARM_BY_CAMERA_NAME[cameraName.toLowerCase()];
+  if (mapped) return mapped;
+  return hashString(cameraName) % 2 === 0 ? "critical" : "warning";
 }
 
 export function cctvAlarmLabel(severity: CctvAlarmSeverity): string {
