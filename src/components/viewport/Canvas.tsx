@@ -3,6 +3,7 @@ import { type WebGLRenderer } from "three";
 
 import { isMobileDevice } from "@/lib/device";
 import { bindGltfRenderer } from "@/three/gltfLoader";
+import type { GpuPowerPreference } from "@/stores/viewportTestStore";
 
 const INITIAL_CAMERA_POSITION: Vector3 = [3, 3, 5];
 
@@ -15,22 +16,22 @@ function cappedDpr(): number {
 type CanvasProps = {
   children: React.ReactNode;
   antialias?: boolean;
+  powerPreference?: GpuPowerPreference;
 };
 
 export default function Canvas({
   children,
   antialias = true,
+  powerPreference = "high-performance",
 }: CanvasProps): React.ReactNode {
-  const mobile = isMobileDevice();
-
   return (
     <R3FCanvas
-      key={antialias ? "aa-on" : "aa-off"}
+      key={`${antialias ? "aa-on" : "aa-off"}-${powerPreference}`}
       shadows
       dpr={cappedDpr()}
       gl={{
         antialias,
-        powerPreference: mobile ? "low-power" : "high-performance",
+        powerPreference,
         stencil: false,
         depth: true,
       }}

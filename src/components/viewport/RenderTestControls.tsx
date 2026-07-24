@@ -32,11 +32,17 @@ export default function RenderTestControls() {
   );
   const shadowsEnabled = useViewportTestStore((s) => s.shadowsEnabled);
   const antialiasEnabled = useViewportTestStore((s) => s.antialiasEnabled);
+  const gpuPowerPreference = useViewportTestStore((s) => s.gpuPowerPreference);
   const togglePostProcessing = useViewportTestStore(
     (s) => s.togglePostProcessing,
   );
   const toggleShadows = useViewportTestStore((s) => s.toggleShadows);
   const toggleAntialias = useViewportTestStore((s) => s.toggleAntialias);
+  const toggleGpuPowerPreference = useViewportTestStore(
+    (s) => s.toggleGpuPowerPreference,
+  );
+
+  const gpuHigh = gpuPowerPreference === "high-performance";
 
   return (
     <div
@@ -61,6 +67,18 @@ export default function RenderTestControls() {
         enabled={antialiasEnabled}
         onClick={toggleAntialias}
       />
+      <button
+        type="button"
+        onClick={toggleGpuPowerPreference}
+        className={cn(
+          "cursor-pointer rounded-md border px-3 py-1.5 text-xs transition-colors",
+          gpuHigh
+            ? "border-accent/40 bg-accent/20 text-text hover:bg-accent/30"
+            : "border-border bg-bg/90 text-muted hover:border-white/20 hover:bg-bg hover:text-text",
+        )}
+      >
+        GPU Power: {gpuHigh ? "HIGH" : "LOW"}
+      </button>
     </div>
   );
 }
