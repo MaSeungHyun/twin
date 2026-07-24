@@ -87,7 +87,7 @@ export default function CameraWithVideo({
             }
           }}
           className={cn(
-            "cctv-marker-panel bg-bg/95 w-[200px] cursor-pointer overflow-hidden rounded-md border shadow-lg transition-transform hover:scale-[1.02]",
+            "cctv-marker-panel bg-bg/95 w-[200px] cursor-pointer overflow-hidden rounded-md border shadow-lg transition-transform hover:scale-[5.02]",
             isAlarmActive &&
               alarmSeverity === "critical" &&
               "cctv-marker-panel--critical",
