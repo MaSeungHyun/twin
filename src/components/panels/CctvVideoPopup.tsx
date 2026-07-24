@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { usePooledCctvVideo } from "@/hooks/usePooledCctvVideo";
@@ -21,9 +21,11 @@ export default function CctvVideoPopup() {
 
   const isAlarmActive = useCctvAlarmActive(cameraId);
   const dismissAlarm = useCctvAlarmStore((state) => state.dismiss);
-  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(
+    null,
+  );
 
-  usePooledCctvVideo(videoContainerRef, videoSrc, isOpen, {
+  usePooledCctvVideo(videoContainer, videoSrc, isOpen, {
     className: "block aspect-video w-full bg-black object-contain",
     controls: true,
   });
@@ -55,7 +57,7 @@ export default function CctvVideoPopup() {
         aria-label={`${cameraName} CCTV`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-border bg-white/3 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-white/3 px-4 py-1">
           <div className="flex min-w-0 items-center gap-2">
             <h2 className="m-0 text-[15px] font-semibold">{cameraName}</h2>
             {isAlarmActive && (
@@ -79,7 +81,7 @@ export default function CctvVideoPopup() {
           </button>
         </div>
 
-        <div ref={videoContainerRef} className="aspect-video bg-black" />
+        <div ref={setVideoContainer} className="aspect-video bg-black" />
       </div>
     </div>,
     document.body,

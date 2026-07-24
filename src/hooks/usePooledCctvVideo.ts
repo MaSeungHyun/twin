@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect } from "react";
 
 import {
   mountPooledCctvVideo,
@@ -12,7 +12,7 @@ type UsePooledCctvVideoOptions = {
 
 /** src당 video 1개를 재사용 — 마커↔팝업 전환 시 재로드 없음 */
 export function usePooledCctvVideo(
-  containerRef: RefObject<HTMLElement | null>,
+  container: HTMLElement | null,
   src: string,
   active: boolean,
   options: UsePooledCctvVideoOptions = {},
@@ -20,7 +20,6 @@ export function usePooledCctvVideo(
   const { className, controls } = options;
 
   useEffect(() => {
-    const container = containerRef.current;
     if (!container || !active || !src) return;
 
     mountPooledCctvVideo(container, src, { className, controls });
@@ -28,5 +27,5 @@ export function usePooledCctvVideo(
     return () => {
       unmountPooledCctvVideo(container);
     };
-  }, [containerRef, src, active, className, controls]);
+  }, [container, src, active, className, controls]);
 }
