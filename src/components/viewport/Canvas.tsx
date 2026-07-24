@@ -1,9 +1,8 @@
 import { Canvas as R3FCanvas, type Vector3 } from "@react-three/fiber";
-import { CullFaceFront, PCFSoftShadowMap, type WebGLRenderer } from "three";
+import { type WebGLRenderer } from "three";
 
 import { isMobileDevice } from "@/lib/device";
 import { bindGltfRenderer } from "@/three/gltfLoader";
-import { BakeShadows } from "@react-three/drei";
 
 const INITIAL_CAMERA_POSITION: Vector3 = [3, 3, 5];
 

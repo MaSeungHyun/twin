@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
   DirectionalLight,
-  Mesh,
   Object3D,
   Vector3,
   type OrthographicCamera,
