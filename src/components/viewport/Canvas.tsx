@@ -5,7 +5,7 @@ import { isMobileDevice } from "@/lib/device";
 import { bindGltfRenderer } from "@/three/gltfLoader";
 import type { GpuPowerPreference } from "@/stores/viewportTestStore";
 
-const INITIAL_CAMERA_POSITION: Vector3 = [3, 3, 5];
+const INITIAL_CAMERA_POSITION: Vector3 = [10, 20, 40];
 
 /** 레티나에서 fill-rate·VRAM 폭주 → context lost 완화 */
 function cappedDpr(): number {

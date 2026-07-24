@@ -10,7 +10,7 @@ import {
 import {
   SPACE_CAMERA_LOOK_DISTANCE,
   applyCameraProjection,
-  applyLerpedNearFarProjection,
+  applyLerpedCameraProjection,
   applySpaceCameraTransform,
   ensureCameraProjection,
   snapshotCameraProjection,
@@ -115,7 +115,7 @@ export default function OfficeCameraFlyer() {
       _toQuat.set(...goal.rotation);
 
       if (fromProjection.current) {
-        applyLerpedNearFarProjection(
+        applyLerpedCameraProjection(
           camera,
           fromProjection.current,
           goal.projection,

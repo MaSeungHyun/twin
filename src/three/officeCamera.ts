@@ -50,8 +50,8 @@ export function applyCameraProjection(
   camera.updateProjectionMatrix();
 }
 
-/** near/far만 보간, fov/aspect는 목표값 즉시 적용 */
-export function applyLerpedNearFarProjection(
+/** projection 전체를 보간 */
+export function applyLerpedCameraProjection(
   camera: PerspectiveCamera,
   from: OfficeCameraView["projection"],
   to: OfficeCameraView["projection"],
@@ -59,8 +59,8 @@ export function applyLerpedNearFarProjection(
 ) {
   camera.near = from.near + (to.near - from.near) * t;
   camera.far = from.far + (to.far - from.far) * t;
-  camera.fov = to.fov;
-  camera.aspect = to.aspect;
+  camera.fov = from.fov + (to.fov - from.fov) * t;
+  camera.aspect = from.aspect + (to.aspect - from.aspect) * t;
   camera.updateProjectionMatrix();
 }
 
