@@ -9,6 +9,7 @@ import {
 
 import { isMobileDevice } from "@/lib/device";
 import { DEFAULT_GALLERY_ID, useCameraStore } from "@/stores/cameraStore";
+import { useViewportTestStore } from "@/stores/viewportTestStore";
 
 const SHADOW_EXTENT = 70;
 const _target = new Vector3();
@@ -31,6 +32,7 @@ export default function FollowShadowLight() {
 
   const focusId = pendingSoloId ?? soloId ?? DEFAULT_GALLERY_ID;
   const focus = focuses[focusId] ?? focuses[DEFAULT_GALLERY_ID];
+  const shadowsEnabled = useViewportTestStore((s) => s.shadowsEnabled);
 
   useEffect(() => {
     const light = lightRef.current;
@@ -73,7 +75,7 @@ export default function FollowShadowLight() {
       <ambientLight intensity={0.15} />
       <directionalLight
         ref={lightRef}
-        castShadow
+        castShadow={shadowsEnabled}
         intensity={2.2}
         shadow-mapSize={[shadowMap, shadowMap]}
         shadow-bias={-0.00015}

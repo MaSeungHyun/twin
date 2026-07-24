@@ -1,20 +1,17 @@
-import { Suspense, useEffect, useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
-import { Light, Mesh, type Object3D } from "three";
+import { Mesh, type Object3D } from "three";
 
 import mapsBigCompanyUrl from "@/assets/model/Maps_BigCompany256.glb?url";
-import {
-  useLightBankStore,
-  type DetachedLight,
-} from "@/stores/lightBankStore.ts";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
   extendGltfLoader,
 } from "@/three/gltfLoader";
+import { limitSceneLights } from "@/three/limitLights";
 
+const MAX_LIGHTS = 20;
 const preparedScenes = new WeakSet<Object3D>();
-const lightBankByScene = new WeakMap<Object3D, DetachedLight[]>();
 
 function enableMeshShadows(root: Object3D) {
   root.traverse((obj) => {
@@ -24,41 +21,17 @@ function enableMeshShadows(root: Object3D) {
   });
 }
 
-function collectLights(root: Object3D): DetachedLight[] {
-  const entries: DetachedLight[] = [];
-  root.traverse((obj) => {
-    if (!(obj as Light).isLight) return;
-    const light = obj as Light;
-    if (!light.parent) return;
-    entries.push({ light, parent: light.parent });
-  });
+function prepareModel(scene: Object3D) {
+  if (preparedScenes.has(scene)) return scene;
 
-  entries.sort((a, b) =>
-    (a.light.name || "").localeCompare(b.light.name || ""),
-  );
-
-  for (const { light } of entries) {
-    light.removeFromParent();
-  }
-
-  return entries;
-}
-
-function prepareModel(scene: Object3D): DetachedLight[] {
-  if (!preparedScenes.has(scene)) {
-    enableMeshShadows(scene);
-    const entries = collectLights(scene);
-    lightBankByScene.set(scene, entries);
-    preparedScenes.add(scene);
-    console.log("[Testing] lights collected", entries.length);
-  }
-  return lightBankByScene.get(scene) ?? [];
+  const lights = limitSceneLights(scene, MAX_LIGHTS);
+  enableMeshShadows(scene);
+  preparedScenes.add(scene);
+  console.log("[Testing] lights limited", lights);
+  return scene;
 }
 
 function MapsBigCompanyModel() {
-  const setBank = useLightBankStore((s) => s.setBank);
-  const reset = useLightBankStore((s) => s.reset);
-
   const gltf = useGLTF(
     mapsBigCompanyUrl,
     GLTF_USE_DRACO,
@@ -66,17 +39,12 @@ function MapsBigCompanyModel() {
     extendGltfLoader,
   );
 
-  const entries = useMemo(() => prepareModel(gltf.scene), [gltf.scene]);
+  const scene = useMemo(() => prepareModel(gltf.scene), [gltf.scene]);
 
-  useEffect(() => {
-    setBank(entries);
-    return () => reset();
-  }, [entries, setBank, reset]);
-
-  return <primitive object={gltf.scene} />;
+  return <primitive object={scene} />;
 }
 
-/** Maps_BigCompany512.glb — 조명 배열, 버튼으로 씬에 add/remove */
+/** Maps_BigCompany256.glb — intensity 상위 20개 조명만 유지 */
 export default function Testing() {
   return (
     <Suspense fallback={null}>
