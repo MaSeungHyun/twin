@@ -41,16 +41,69 @@ export function clampPanelToViewport(
   };
 }
 
-/** world position → canvas 픽셀 (drei Html과 동일 기준) */
+export type ScreenAnchor = {
+  x: number;
+  y: number;
+  /** frustum 밖(카메라 near/뒤) → viewport 가장자리로 투영 */
+  offScreen: boolean;
+};
+
+function clampRayToViewportEdge(
+  x: number,
+  y: number,
+  cx: number,
+  cy: number,
+  viewport: ViewportSize,
+  padding: number,
+): { x: number; y: number } {
+  const dx = x - cx;
+  const dy = y - cy;
+
+  if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) {
+    return { x: cx, y: cy };
+  }
+
+  const minX = padding;
+  const maxX = viewport.width - padding;
+  const minY = padding;
+  const maxY = viewport.height - padding;
+
+  const scaleX =
+    dx > 0 ? (maxX - cx) / dx : dx < 0 ? (minX - cx) / dx : Infinity;
+  const scaleY =
+    dy > 0 ? (maxY - cy) / dy : dy < 0 ? (minY - cy) / dy : Infinity;
+
+  const scale = Math.min(scaleX, scaleY);
+
+  return {
+    x: cx + dx * scale,
+    y: cy + dy * scale,
+  };
+}
+
+/** world position → canvas 픽셀. near/뒤쪽이어도 viewport 가장자리에 표시 */
 export function worldToScreen(
   x: number,
   y: number,
   z: number,
   viewport: ViewportSize,
-): { x: number; y: number; visible: boolean } {
-  return {
-    x: (x * 0.5 + 0.5) * viewport.width,
-    y: (-y * 0.5 + 0.5) * viewport.height,
-    visible: z >= -1 && z <= 1,
-  };
+): ScreenAnchor {
+  const cx = viewport.width / 2;
+  const cy = viewport.height / 2;
+  const inFrustum = z >= -1 && z <= 1;
+
+  let sx = (x * 0.5 + 0.5) * viewport.width;
+  let sy = (-y * 0.5 + 0.5) * viewport.height;
+
+  if (inFrustum) {
+    return { x: sx, y: sy, offScreen: false };
+  }
+
+  if (z > 1) {
+    sx = cx + (cx - sx);
+    sy = cy + (cy - sy);
+  }
+
+  const edge = clampRayToViewportEdge(sx, sy, cx, cy, viewport, DEFAULT_PADDING);
+  return { x: edge.x, y: edge.y, offScreen: true };
 }

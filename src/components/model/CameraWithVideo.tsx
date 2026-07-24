@@ -1,7 +1,7 @@
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Group, Vector3, type PerspectiveCamera } from "three";
+import { Group, Object3D, Vector3, type Camera, type PerspectiveCamera } from "three";
 
 import { usePooledCctvVideo } from "@/hooks/usePooledCctvVideo";
 import {
@@ -23,6 +23,18 @@ import {
 import { useCctvPopupStore } from "@/stores/cctvPopupStore";
 
 const _worldPos = new Vector3();
+const _calcPos = new Vector3();
+
+function calculateMarkerPosition(
+  el: Object3D,
+  camera: Camera,
+  viewport: { width: number; height: number },
+) {
+  _calcPos.setFromMatrixPosition(el.matrixWorld);
+  _calcPos.project(camera);
+  const screen = worldToScreen(_calcPos.x, _calcPos.y, _calcPos.z, viewport);
+  return [screen.x, screen.y] as [number, number];
+}
 
 type CameraWithVideoProps = {
   camera: PerspectiveCamera;
@@ -154,6 +166,10 @@ export default function CameraWithVideo({
     const isHoveredNow = hoveredId === camera.uuid;
 
     if (htmlPortal) {
+      if (markerVisible) {
+        htmlPortal.style.display = "block";
+      }
+
       htmlPortal.style.zIndex = String(
         isHoveredNow
           ? CCTV_MARKER_Z_INDEX_HOVER
@@ -175,10 +191,6 @@ export default function CameraWithVideo({
     _worldPos.project(viewCamera);
     const screen = worldToScreen(_worldPos.x, _worldPos.y, _worldPos.z, size);
 
-    if (!screen.visible) {
-      wrapper.style.visibility = "hidden";
-      return;
-    }
     wrapper.style.visibility = "visible";
 
     const { offsetX, offsetY, clamped } = clampPanelToViewport(
@@ -194,7 +206,7 @@ export default function CameraWithVideo({
     if (line) {
       line.setAttribute("x2", String(offsetX));
       line.setAttribute("y2", String(offsetY));
-      line.style.opacity = clamped ? "1" : "0";
+      line.style.opacity = clamped || screen.offScreen ? "1" : "0";
     }
   }, 100);
 
@@ -202,6 +214,7 @@ export default function CameraWithVideo({
     <group ref={groupRef}>
       <Html
         center
+        calculatePosition={calculateMarkerPosition}
         wrapperClass="cctv-html-marker"
         zIndexRange={CCTV_MARKER_Z_INDEX_DEFAULT}
         style={{
