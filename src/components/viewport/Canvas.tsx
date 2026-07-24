@@ -14,17 +14,22 @@ function cappedDpr(): number {
 
 type CanvasProps = {
   children: React.ReactNode;
+  antialias?: boolean;
 };
 
-export default function Canvas({ children }: CanvasProps): React.ReactNode {
+export default function Canvas({
+  children,
+  antialias = true,
+}: CanvasProps): React.ReactNode {
   const mobile = isMobileDevice();
 
   return (
     <R3FCanvas
+      key={antialias ? "aa-on" : "aa-off"}
       shadows
       dpr={cappedDpr()}
       gl={{
-        antialias: !mobile,
+        antialias,
         powerPreference: mobile ? "low-power" : "high-performance",
         stencil: false,
         depth: true,

@@ -12,9 +12,10 @@ export default function ViewportScene() {
   const postProcessingEnabled = useViewportTestStore(
     (s) => s.postProcessingEnabled,
   );
+  const antialiasEnabled = useViewportTestStore((s) => s.antialiasEnabled);
 
   return (
-    <Canvas>
+    <Canvas antialias={antialiasEnabled}>
       <SceneShadowSync />
       <FollowShadowLight />
       <Controls />

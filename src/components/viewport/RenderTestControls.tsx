@@ -31,10 +31,12 @@ export default function RenderTestControls() {
     (s) => s.postProcessingEnabled,
   );
   const shadowsEnabled = useViewportTestStore((s) => s.shadowsEnabled);
+  const antialiasEnabled = useViewportTestStore((s) => s.antialiasEnabled);
   const togglePostProcessing = useViewportTestStore(
     (s) => s.togglePostProcessing,
   );
   const toggleShadows = useViewportTestStore((s) => s.toggleShadows);
+  const toggleAntialias = useViewportTestStore((s) => s.toggleAntialias);
 
   return (
     <div
@@ -53,6 +55,11 @@ export default function RenderTestControls() {
         label="Shadows"
         enabled={shadowsEnabled}
         onClick={toggleShadows}
+      />
+      <ToggleButton
+        label="Antialias"
+        enabled={antialiasEnabled}
+        onClick={toggleAntialias}
       />
     </div>
   );
