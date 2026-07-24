@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Group, LoopOnce, Mesh } from "three";
 
@@ -7,7 +7,14 @@ import { useOfficeCameraStore } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
 import {
   collectOfficeCameras,
+  collectSceneCameras,
 } from "@/three/officeCamera";
+import CameraWithVideo from "./CameraWithVideo";
+import {
+  getOfficeCameraVideo,
+  OFFICE_CAMERA_VIDEO_URLS,
+} from "@/data/officeCameraVideos";
+import { preloadOfficeVideos } from "@/lib/cctvVideoPool";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
@@ -44,6 +51,13 @@ function OfficeModel() {
   const clearCeilingCommand = useOfficeStore((s) => s.clearCeilingCommand);
   const setCeilingOpen = useOfficeStore((s) => s.setCeilingOpen);
   const setViews = useOfficeCameraStore((s) => s.setViews);
+
+  const sceneCameras = useMemo(
+    () => collectSceneCameras(gltf.scene),
+    [gltf.scene],
+  );
+
+  useEffect(() => preloadOfficeVideos([...OFFICE_CAMERA_VIDEO_URLS]), []);
 
   useEffect(() => {
     setViews(collectOfficeCameras(gltf.scene));
@@ -103,6 +117,17 @@ function OfficeModel() {
   return (
     <group ref={group}>
       <primitive object={gltf.scene} />
+      {sceneCameras.map((cam) => {
+        const videoSrc = getOfficeCameraVideo(cam.name);
+        if (!videoSrc) return null;
+        return (
+          <CameraWithVideo
+            key={cam.uuid}
+            camera={cam}
+            videoSrc={videoSrc}
+          />
+        );
+      })}
     </group>
   );
 }

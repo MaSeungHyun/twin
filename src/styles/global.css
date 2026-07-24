@@ -917,6 +917,62 @@ body {
   gap: 8px;
 }
 
+/* ── 3D viewport CCTV marker ── */
+
+.cctv-marker-panel {
+  border-width: 2px;
+  border-style: solid;
+}
+
+.cctv-marker-panel--critical {
+  --cctv-alarm-color: var(--color-severity-critical);
+  border-color: var(--color-severity-critical);
+  animation: cctv-alarm-ring-pulse 1.8s ease-in-out infinite;
+}
+
+.cctv-marker-panel--warning {
+  --cctv-alarm-color: var(--color-severity-warning);
+  border-color: var(--color-severity-warning);
+  animation: cctv-alarm-ring-pulse 1.8s ease-in-out infinite;
+}
+
+.cctv-marker-panel__badge {
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cctv-marker-panel__badge--critical {
+  color: #fff;
+  background: var(--color-severity-critical);
+}
+
+.cctv-marker-panel__badge--warning {
+  color: #1a1408;
+  background: var(--color-severity-warning);
+}
+
+@keyframes cctv-alarm-ring-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--cctv-alarm-color) 85%, transparent),
+      0 0 10px color-mix(in srgb, var(--cctv-alarm-color) 55%, transparent),
+      0 0 20px color-mix(in srgb, var(--cctv-alarm-color) 30%, transparent);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--cctv-alarm-color) 95%, transparent),
+      0 0 18px color-mix(in srgb, var(--cctv-alarm-color) 70%, transparent),
+      0 0 32px color-mix(in srgb, var(--cctv-alarm-color) 45%, transparent);
+  }
+}
+
 .cctv-thumb {
   display: flex;
   flex-direction: column;

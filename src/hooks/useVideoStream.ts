@@ -1,31 +1,54 @@
-import { useEffect, type RefObject } from 'react'
+import { useEffect, type RefObject } from "react";
 
-/** F-09 — video 1개 생명주기: enabled=false 또는 unmount 시 src 해제 */
+function resolveVideo(
+  videoOrRef: RefObject<HTMLVideoElement | null> | HTMLVideoElement | null,
+): HTMLVideoElement | null {
+  if (!videoOrRef) return null;
+  if ("current" in videoOrRef) return videoOrRef.current;
+  return videoOrRef;
+}
+
+function attachStream(video: HTMLVideoElement, streamUrl: string) {
+  video.preload = "auto";
+  if (video.src !== streamUrl) {
+    video.src = streamUrl;
+  }
+  void video.play().catch(() => {
+    /* autoplay blocked — canplay 이벤트에서 재시도 */
+  });
+}
+
+function detachStream(video: HTMLVideoElement) {
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+}
+
+/** video 1개 생명주기: enabled=false 또는 unmount 시 src 해제 */
 export function useVideoStream(
-  videoRef: RefObject<HTMLVideoElement | null>,
+  videoOrRef: RefObject<HTMLVideoElement | null> | HTMLVideoElement | null,
   streamUrl: string | undefined,
   enabled: boolean,
 ) {
   useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
+    const video = resolveVideo(videoOrRef);
+    if (!video) return;
 
     if (!enabled || !streamUrl) {
-      video.pause()
-      video.removeAttribute('src')
-      video.load()
-      return
+      detachStream(video);
+      return;
     }
 
-    video.src = streamUrl
-    void video.play().catch(() => {
-      /* autoplay blocked or missing asset — placeholder UI handles display */
-    })
+    attachStream(video, streamUrl);
+
+    const onCanPlay = () => {
+      void video.play().catch(() => {});
+    };
+    video.addEventListener("canplay", onCanPlay);
 
     return () => {
-      video.pause()
-      video.removeAttribute('src')
-      video.load()
-    }
-  }, [videoRef, streamUrl, enabled])
+      video.removeEventListener("canplay", onCanPlay);
+      detachStream(video);
+    };
+  }, [videoOrRef, streamUrl, enabled]);
 }

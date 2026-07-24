@@ -138,6 +138,17 @@ export function applySpaceCameraView(
   applySpaceCameraTransform(camera, controls, view);
 }
 
+/** GLB 씬 내 PerspectiveCamera 노드 수집 */
+export function collectSceneCameras(root: Object3D): PerspectiveCamera[] {
+  const cameras: PerspectiveCamera[] = [];
+  root.traverse((obj) => {
+    if ((obj as PerspectiveCamera).isPerspectiveCamera) {
+      cameras.push(obj as PerspectiveCamera);
+    }
+  });
+  return cameras;
+}
+
 /** office / office2 / cafe 카메라만 수집 (기본 Camera 제외) */
 export function collectOfficeCameras(root: Object3D): OfficeCameraView[] {
   const byName = new Map<OfficeCameraId, Object3D>();
