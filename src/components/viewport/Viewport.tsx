@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useProgress } from "@react-three/drei";
 
 import ModelSelector from "../model/ModelSelector";
-import LightBankControls from "../model/LightBankControls";
 
 import Fallback from "./Fallback";
 import ViewportScene from "./ViewportScene";
@@ -26,9 +25,8 @@ export default function Viewport() {
   return (
     <div className="relative flex flex-1 w-full h-full">
       <ModelSelector />
-      <LightBankControls />
 
-      <ModelLoadingOverlay />
+      {/* <ModelLoadingOverlay /> */}
       <ViewportScene />
     </div>
   );

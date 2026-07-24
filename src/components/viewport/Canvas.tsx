@@ -29,7 +29,7 @@ export default function Canvas({ children }: CanvasProps): React.ReactNode {
         stencil: false,
         depth: true,
       }}
-      camera={{ position: INITIAL_CAMERA_POSITION, near: 0.1, far: 2000 }}
+      camera={{ position: INITIAL_CAMERA_POSITION, near: 0.1, far: 1000 }}
       onCreated={({ gl }) => {
         const renderer = gl as WebGLRenderer;
         bindGltfRenderer(renderer);
