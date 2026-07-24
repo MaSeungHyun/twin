@@ -7,6 +7,7 @@ import Canvas from "./Canvas";
 import Controls from "./Controls";
 import FollowShadowLight from "./FollowShadowLight";
 import SceneShadowSync from "./SceneShadowSync";
+import { StatsGl } from "@react-three/drei";
 
 export default function ViewportScene() {
   const postProcessingEnabled = useViewportTestStore(
@@ -30,6 +31,7 @@ export default function ViewportScene() {
           mipmapBlur
         />
       </EffectComposer>
+      <StatsGl className="pointer-events-none absolute top-14 right-10 z-2" />
     </Canvas>
   );
 }
