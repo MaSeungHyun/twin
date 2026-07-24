@@ -8,11 +8,10 @@ export type DetachedLight = {
 
 type LightBankState = {
   entries: DetachedLight[];
-  /** 씬에 다시 붙인 개수 */
   activeCount: number;
   setBank: (entries: DetachedLight[]) => void;
-  /** 대기 중인 라이트를 count개까지 한 번에 추가. 성공 시 새 activeCount */
-  addMany: (count?: number) => number | null;
+  addMany: (count?: number) => number;
+  removeMany: (count?: number) => number;
   reset: () => void;
 };
 
@@ -34,30 +33,47 @@ export const useLightBankStore = create<LightBankState>((set, get) => ({
 
   addMany: (count = 1) => {
     const { entries, activeCount } = get();
-    if (activeCount >= entries.length) return null;
-
     const n = Math.max(1, Math.floor(count));
     const end = Math.min(activeCount + n, entries.length);
 
     for (let i = activeCount; i < end; i++) {
       const entry = entries[i];
-      if (entry) entry.parent.add(entry.light);
+      if (entry && !entry.light.parent) {
+        entry.parent.add(entry.light);
+      }
     }
 
     set({ activeCount: end });
-    console.log("[LightBank] added batch", {
+    console.log("[LightBank] add", {
       added: end - activeCount,
       active: end,
       total: entries.length,
     });
-
     return end;
   },
 
-  reset: () => {
+  removeMany: (count = 1) => {
     const { entries, activeCount } = get();
-    for (let i = activeCount; i < entries.length; i++) {
-      entries[i]?.light.dispose?.();
+    const n = Math.max(1, Math.floor(count));
+    const next = Math.max(0, activeCount - n);
+
+    for (let i = activeCount - 1; i >= next; i--) {
+      entries[i]?.light.removeFromParent();
+    }
+
+    set({ activeCount: next });
+    console.log("[LightBank] remove", {
+      removed: activeCount - next,
+      active: next,
+      total: entries.length,
+    });
+    return next;
+  },
+
+  reset: () => {
+    const { entries } = get();
+    for (const { light } of entries) {
+      light.removeFromParent();
     }
     set({ entries: [], activeCount: 0 });
   },

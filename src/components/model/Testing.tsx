@@ -1,16 +1,12 @@
 import { Suspense, useEffect, useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
-import { useThree } from "@react-three/fiber";
-import {
-  ACESFilmicToneMapping,
-  Light,
-  Mesh,
-  type Object3D,
-  type WebGLRenderer,
-} from "three";
+import { Light, Mesh, type Object3D } from "three";
 
-import trainStationUrl from "@/assets/model/TrainStation.glb?url";
-import { applyBlenderLightIntensities } from "@/three/blenderLights";
+import mapsBigCompanyUrl from "@/assets/model/Maps_BigCompany256.glb?url";
+import {
+  useLightBankStore,
+  type DetachedLight,
+} from "@/stores/lightBankStore.ts";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
@@ -18,19 +14,7 @@ import {
 } from "@/three/gltfLoader";
 
 const preparedScenes = new WeakSet<Object3D>();
-/** GLB에서 읽은 원본 intensity — 모드 변경/HMR 시 재적용용 */
-const originalIntensity = new WeakMap<Light, number>();
-
-/**
- * TrainStation.glb intensity 해석 모드
- * - blender-energy: Blender Power(W) → cd  (× ~54) → 더 밝아짐
- * - gltf-unitless: ×683 → 더 밝아짐
- * - gltf-standard: 이미 cd/lx → 변환 없음 (이 파일이 해당)
- *
- * 실측 Point ~200–3000 cd → blender-energy 적용하면 더 밝아짐 (잘못)
- */
-const LIGHT_INTENSITY_MODE = "gltf-standard" as const;
-const FORCED_LIGHT_INTENSITY = 0.3;
+const lightBankByScene = new WeakMap<Object3D, DetachedLight[]>();
 
 function enableMeshShadows(root: Object3D) {
   root.traverse((obj) => {
@@ -40,80 +24,69 @@ function enableMeshShadows(root: Object3D) {
   });
 }
 
-function restoreOriginalIntensities(root: Object3D) {
+function collectLights(root: Object3D): DetachedLight[] {
+  const entries: DetachedLight[] = [];
   root.traverse((obj) => {
     if (!(obj as Light).isLight) return;
     const light = obj as Light;
-    const stored = originalIntensity.get(light);
-    if (stored !== undefined) {
-      light.intensity = stored;
-      return;
-    }
-    originalIntensity.set(light, light.intensity);
+    if (!light.parent) return;
+    entries.push({ light, parent: light.parent });
   });
-}
 
-/** 테스트용: 모든 Light.intensity 고정 */
-function forceLightIntensity(root: Object3D, value: number) {
-  const report: Array<{ name: string; type: string; before: number }> = [];
-  root.traverse((obj) => {
-    if (!(obj as Light).isLight) return;
-    const light = obj as Light;
-    report.push({
-      name: light.name || "(unnamed)",
-      type: light.type,
-      before: light.intensity,
-    });
-    light.intensity = value;
-  });
-  console.log("[Testing] forced light intensity", value, report);
-}
+  entries.sort((a, b) =>
+    (a.light.name || "").localeCompare(b.light.name || ""),
+  );
 
-function prepareTrainStation(scene: Object3D) {
-  restoreOriginalIntensities(scene);
-
-  if (!preparedScenes.has(scene)) {
-    enableMeshShadows(scene);
-    preparedScenes.add(scene);
+  for (const { light } of entries) {
+    light.removeFromParent();
   }
 
-  applyBlenderLightIntensities(scene, LIGHT_INTENSITY_MODE);
-  forceLightIntensity(scene, FORCED_LIGHT_INTENSITY);
-  return scene;
+  return entries;
 }
 
-function TrainStationModel() {
-  const gl = useThree((s) => s.gl) as WebGLRenderer;
+function prepareModel(scene: Object3D): DetachedLight[] {
+  if (!preparedScenes.has(scene)) {
+    enableMeshShadows(scene);
+    const entries = collectLights(scene);
+    lightBankByScene.set(scene, entries);
+    preparedScenes.add(scene);
+    console.log("[Testing] lights collected", entries.length);
+  }
+  return lightBankByScene.get(scene) ?? [];
+}
+
+function MapsBigCompanyModel() {
+  const setBank = useLightBankStore((s) => s.setBank);
+  const reset = useLightBankStore((s) => s.reset);
+
   const gltf = useGLTF(
-    trainStationUrl,
+    mapsBigCompanyUrl,
     GLTF_USE_DRACO,
     GLTF_USE_MESHOPT,
     extendGltfLoader,
   );
 
+  const entries = useMemo(() => prepareModel(gltf.scene), [gltf.scene]);
+
   useEffect(() => {
-    gl.toneMapping = ACESFilmicToneMapping;
-    gl.toneMappingExposure = 1;
-  }, [gl]);
+    setBank(entries);
+    return () => reset();
+  }, [entries, setBank, reset]);
 
-  const scene = useMemo(() => prepareTrainStation(gltf.scene), [gltf.scene]);
-
-  return <primitive object={scene} />;
+  return <primitive object={gltf.scene} />;
 }
 
-/** TrainStation.glb — glTF Standard(cd/lx) 그대로 사용 */
+/** Maps_BigCompany512.glb — 조명 배열, 버튼으로 씬에 add/remove */
 export default function Testing() {
   return (
     <Suspense fallback={null}>
-      <TrainStationModel />
+      <MapsBigCompanyModel />
     </Suspense>
   );
 }
 
-// blender-energy로 이미 키워둔 씬 캐시 제거 → 파일 원본 cd/lx 재로드
-useGLTF.clear(trainStationUrl);
 useGLTF.preload(
-  trainStationUrl,
+  mapsBigCompanyUrl,
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
   extendGltfLoader,
