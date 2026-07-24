@@ -3,10 +3,17 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Quaternion, Vector3, type PerspectiveCamera } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
-import { useOfficeCameraStore } from "@/stores/officeCameraStore";
+import {
+  type CameraProjection,
+  useOfficeCameraStore,
+} from "@/stores/officeCameraStore";
 import {
   SPACE_CAMERA_LOOK_DISTANCE,
-  applySpaceCameraView,
+  applyCameraProjection,
+  applyLerpedNearFarProjection,
+  applySpaceCameraTransform,
+  ensureCameraProjection,
+  snapshotCameraProjection,
 } from "@/three/officeCamera";
 
 const _toPos = new Vector3();
@@ -30,31 +37,63 @@ function syncControlsTarget(
   controls.update();
 }
 
+function restoreViewportProjection(
+  camera: PerspectiveCamera,
+  saved: CameraProjection,
+  aspect: number,
+) {
+  camera.near = saved.near;
+  camera.far = saved.far;
+  camera.fov = saved.fov;
+  camera.aspect = aspect;
+  camera.updateProjectionMatrix();
+}
+
 export default function OfficeCameraFlyer() {
   const goal = useOfficeCameraStore((s) => s.goal);
-  const views = useOfficeCameraStore((s) => s.views);
-  const didInitialSnap = useOfficeCameraStore((s) => s.didInitialSnap);
-  const markInitialSnap = useOfficeCameraStore((s) => s.markInitialSnap);
   const onArrive = useOfficeCameraStore((s) => s.onArrive);
 
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
+  const size = useThree((s) => s.size);
   const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
   const progress = useRef(0);
   const flying = useRef(false);
-
-  const defaultView =
-    views.office ?? views.office2 ?? views.cafe ?? null;
+  const viewportProjection = useRef<CameraProjection | null>(null);
+  const fromProjection = useRef<CameraProjection | null>(null);
+  /** 비행 종료 후 Orbit 시작 전까지 GLB projection 유지 */
+  const lockedGlbProjection = useRef<CameraProjection | null>(null);
 
   useEffect(() => {
-    if (didInitialSnap || !defaultView || !controls) return;
-    applySpaceCameraView(camera, controls, defaultView);
-    markInitialSnap();
-    useOfficeCameraStore.setState({ activeId: defaultView.id });
-  }, [didInitialSnap, defaultView, camera, controls, markInitialSnap]);
+    viewportProjection.current = snapshotCameraProjection(camera);
+  }, [camera]);
+
+  useEffect(() => {
+    if (!controls) return;
+
+    const onOrbitStart = () => {
+      if (!lockedGlbProjection.current || !viewportProjection.current) return;
+      restoreViewportProjection(
+        camera,
+        viewportProjection.current,
+        size.width / size.height,
+      );
+      lockedGlbProjection.current = null;
+    };
+
+    controls.addEventListener("start", onOrbitStart);
+    return () => controls.removeEventListener("start", onOrbitStart);
+  }, [camera, controls, size.width, size.height]);
 
   useEffect(() => {
     if (!goal || !controls) return;
 
+    lockedGlbProjection.current = null;
+
+    if (!viewportProjection.current) {
+      viewportProjection.current = snapshotCameraProjection(camera);
+    }
+
+    fromProjection.current = snapshotCameraProjection(camera);
     _fromCam.copy(camera.position);
     _fromQuat.copy(camera.quaternion);
     progress.current = 0;
@@ -68,23 +107,38 @@ export default function OfficeCameraFlyer() {
   }, [goal, camera, controls]);
 
   useFrame((_, delta) => {
-    if (!goal || !controls || !flying.current) return;
+    if (goal && controls && flying.current) {
+      progress.current = Math.min(1, progress.current + delta / FLIGHT_DURATION);
+      const e = easeInOutCubic(progress.current);
 
-    progress.current = Math.min(1, progress.current + delta / FLIGHT_DURATION);
-    const e = easeInOutCubic(progress.current);
+      _toPos.set(...goal.position);
+      _toQuat.set(...goal.rotation);
 
-    _toPos.set(...goal.position);
-    _toQuat.set(...goal.rotation);
+      if (fromProjection.current) {
+        applyLerpedNearFarProjection(
+          camera,
+          fromProjection.current,
+          goal.projection,
+          e,
+        );
+      }
+      camera.position.lerpVectors(_fromCam, _toPos, e);
+      camera.quaternion.slerpQuaternions(_fromQuat, _toQuat, e);
+      syncControlsTarget(camera, controls);
 
-    camera.position.lerpVectors(_fromCam, _toPos, e);
-    camera.quaternion.slerpQuaternions(_fromQuat, _toQuat, e);
-    syncControlsTarget(camera, controls);
+      if (progress.current >= 1) {
+        flying.current = false;
+        applySpaceCameraTransform(camera, controls, goal);
+        applyCameraProjection(camera, goal.projection);
+        lockedGlbProjection.current = { ...goal.projection };
+        controls.enablePan = true;
+        onArrive();
+      }
+      return;
+    }
 
-    if (progress.current >= 1) {
-      flying.current = false;
-      applySpaceCameraView(camera, controls, goal);
-      controls.enablePan = true;
-      onArrive();
+    if (lockedGlbProjection.current) {
+      ensureCameraProjection(camera, lockedGlbProjection.current);
     }
   });
 

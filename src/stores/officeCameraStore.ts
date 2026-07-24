@@ -8,12 +8,20 @@ import {
 export type Vec3 = [number, number, number];
 export type Quat4 = [number, number, number, number];
 
+export type CameraProjection = {
+  near: number;
+  far: number;
+  aspect: number;
+  fov: number;
+};
+
 export type OfficeCameraView = {
   id: OfficeCameraId;
   label: string;
   sourceName: string;
   position: Vec3;
   rotation: Quat4;
+  projection: CameraProjection;
   target: Vec3;
 };
 
@@ -23,11 +31,9 @@ type OfficeCameraState = {
   activeId: OfficeCameraId | null;
   goal: OfficeCameraView | null;
   isFlying: boolean;
-  didInitialSnap: boolean;
   setViews: (views: OfficeCameraView[]) => void;
   flyTo: (id: OfficeCameraId) => void;
   onArrive: () => void;
-  markInitialSnap: () => void;
 };
 
 export const useOfficeCameraStore = create<OfficeCameraState>((set, get) => ({
@@ -36,7 +42,6 @@ export const useOfficeCameraStore = create<OfficeCameraState>((set, get) => ({
   activeId: null,
   goal: null,
   isFlying: false,
-  didInitialSnap: false,
 
   setViews: (views) => {
     const viewsMap = Object.fromEntries(views.map((v) => [v.id, v])) as Partial<
@@ -48,7 +53,6 @@ export const useOfficeCameraStore = create<OfficeCameraState>((set, get) => ({
       activeId: null,
       goal: null,
       isFlying: false,
-      didInitialSnap: false,
     });
     console.log(
       "[OfficeCamera] views",
@@ -64,8 +68,6 @@ export const useOfficeCameraStore = create<OfficeCameraState>((set, get) => ({
   },
 
   onArrive: () => set({ goal: null, isFlying: false }),
-
-  markInitialSnap: () => set({ didInitialSnap: true }),
 }));
 
 export { OFFICE_CAMERA_IDS };
