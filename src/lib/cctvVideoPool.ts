@@ -97,6 +97,6 @@ export function scheduleOfficeVideoPreload(urls: readonly string[]) {
   if ("requestIdleCallback" in window) {
     window.requestIdleCallback(run, { timeout: 1500 });
   } else {
-    window.setTimeout(run, 0);
+    (window as any).setTimeout(run, 0);
   }
 }
