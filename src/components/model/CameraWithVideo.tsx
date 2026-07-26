@@ -1,7 +1,13 @@
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Group, Object3D, Vector3, type Camera, type PerspectiveCamera } from "three";
+import {
+  Group,
+  Object3D,
+  Vector3,
+  type Camera,
+  type PerspectiveCamera,
+} from "three";
 
 import { usePooledCctvVideo } from "@/hooks/usePooledCctvVideo";
 import {
@@ -263,7 +269,7 @@ export default function CameraWithVideo({
                   ? cctvAlarmRingClass(alarmSeverity)
                   : "border-border",
               )}
-              style={{ transform: isPointerOver ? "scale(3)" : "scale(1)" }}
+              style={{ transform: isPointerOver ? "scale(1.5)" : "scale(1)" }}
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
               onPointerCancel={handlePointerLeave}
