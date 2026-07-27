@@ -1299,6 +1299,181 @@ body {
     --shell-top: 6.75rem;
   }
 
+  /* Overlay panel — 태블릿에서 촘촘하게, 더 많이 표시 */
+  .overlay-panel-dense .alarm-list {
+    gap: 0.25rem;
+  }
+
+  .overlay-panel-dense .alarm-card {
+    border-radius: 0.5rem;
+  }
+
+  .overlay-panel-dense .alarm-card__body {
+    padding: 0.45rem 0.55rem 0.28rem;
+  }
+
+  .overlay-panel-dense .alarm-card__head {
+    gap: 0.25rem;
+    margin-bottom: 0.22rem;
+  }
+
+  .overlay-panel-dense .alarm-card__severity {
+    padding: 0.06rem 0.32rem;
+    font-size: 0.6rem;
+  }
+
+  .overlay-panel-dense .alarm-card__type,
+  .overlay-panel-dense .alarm-card__time,
+  .overlay-panel-dense .alarm-card__meta {
+    font-size: 0.62rem;
+  }
+
+  .overlay-panel-dense .alarm-card__title {
+    margin-bottom: 0.12rem;
+    font-size: 0.76rem;
+    line-height: 1.3;
+  }
+
+  .overlay-panel-dense .alarm-card__message {
+    margin-bottom: 0.22rem;
+    font-size: 0.66rem;
+    line-height: 1.35;
+  }
+
+  .overlay-panel-dense .alarm-card__footer {
+    padding: 0 0.55rem 0.35rem;
+  }
+
+  .overlay-panel-dense .alarm-card__footer:has(.alarm-card__ack) {
+    padding-top: 0.35rem;
+    margin-top: 0;
+  }
+
+  .overlay-panel-dense .alarm-card__congestion,
+  .overlay-panel-dense .alarm-card__ack {
+    font-size: 0.62rem;
+    padding: 0.08rem 0.35rem;
+  }
+
+  .overlay-panel-dense .schedule-panel {
+    gap: 0.35rem;
+  }
+
+  .overlay-panel-dense .schedule-panel__tab {
+    min-height: 1.65rem;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.72rem;
+  }
+
+  .overlay-panel-dense .schedule-panel__chip {
+    min-height: 1.4rem;
+    padding: 0.12rem 0.42rem;
+    font-size: 0.64rem;
+  }
+
+  .overlay-panel-dense .schedule-list {
+    gap: 0.2rem;
+  }
+
+  .overlay-panel-dense .schedule-row {
+    grid-template-columns: 2.45rem 1fr auto;
+    gap: 0.3rem;
+    padding: 0.32rem 0.42rem;
+    font-size: 0.72rem;
+    border-radius: 0.42rem;
+  }
+
+  .overlay-panel-dense .schedule-row__time {
+    font-size: 0.72rem;
+  }
+
+  .overlay-panel-dense .schedule-row__train,
+  .overlay-panel-dense .schedule-row__grade,
+  .overlay-panel-dense .schedule-row__place {
+    font-size: 0.68rem;
+  }
+
+  .overlay-panel-dense .schedule-now-marker__label {
+    font-size: 0.58rem;
+  }
+
+  .overlay-panel-dense .schedule-panel__footer {
+    font-size: 0.66rem;
+  }
+
+  .overlay-panel-dense .cctv-panel {
+    gap: 0.4rem;
+  }
+
+  .overlay-panel-dense .cctv-panel__title {
+    font-size: 0.76rem;
+  }
+
+  .overlay-panel-dense .cctv-panel__meta,
+  .overlay-panel-dense .cctv-panel__clear,
+  .overlay-panel-dense .cctv-panel__player-title,
+  .overlay-panel-dense .cctv-panel__status,
+  .overlay-panel-dense .cctv-panel__filter-note {
+    font-size: 0.64rem;
+  }
+
+  .overlay-panel-dense .cctv-panel__main {
+    border-radius: 0.5rem;
+  }
+
+  .overlay-panel-dense .cctv-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.28rem;
+  }
+
+  .overlay-panel-dense .cctv-panel--expanded .cctv-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .overlay-panel-dense .cctv-panel--split {
+    grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 1.15fr);
+    gap: 0.45rem;
+  }
+
+  .overlay-panel-dense .cctv-panel--split .cctv-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .overlay-panel-dense .cctv-thumb__label {
+    font-size: 0.58rem;
+  }
+
+  .overlay-panel-dense .restroom-panel__hint {
+    font-size: 0.66rem;
+  }
+
+  .overlay-panel-dense .restroom-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.38rem;
+  }
+
+  .overlay-panel-dense .restroom-stall {
+    min-height: 3.1rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 0.5rem;
+  }
+
+  .overlay-panel-dense .restroom-stall__label {
+    font-size: 0.64rem;
+  }
+
+  .overlay-panel-dense .restroom-stall__status {
+    font-size: 0.78rem;
+  }
+
+  .overlay-panel-dense .panel-empty__title {
+    font-size: 0.8rem;
+  }
+
+  .overlay-panel-dense .panel-empty__hint {
+    font-size: 0.72rem;
+  }
+
   .cctv-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
