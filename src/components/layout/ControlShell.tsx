@@ -10,7 +10,7 @@ import { useDevices } from "@/hooks/useDevices";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useScheduleStore } from "@/stores/scheduleStore";
 import { useUiStore } from "@/stores/uiStore";
-import { ThreeViewport } from "@/three/ThreeViewport";
+// import { ThreeViewport } from "@/three/ThreeViewport";
 
 export function ControlShell() {
   const leftPanelOpen = useUiStore((s) => s.leftPanelOpen);
