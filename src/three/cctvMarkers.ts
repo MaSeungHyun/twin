@@ -4,6 +4,7 @@ import {
   CCTV_MARKER_FALLBACK_MAX,
   CCTV_MARKER_FALLBACK_PATTERNS,
   CCTV_MARKER_NODE_NAMES,
+  CCTV_MARKER_SUPPLEMENT_PATTERNS,
 } from "@/data/cctvMarkerNodes";
 
 export type CctvMarkerSource = {
@@ -17,6 +18,33 @@ function cleanMarkerName(name: string, index: number): string {
   return cleaned || `cctv-${index + 1}`;
 }
 
+function collectNodesByPatterns(
+  root: Object3D,
+  patterns: readonly RegExp[],
+): Object3D[] {
+  const found: Object3D[] = [];
+  root.traverse((obj) => {
+    if (!obj.name) return;
+    if (patterns.some((pattern) => pattern.test(obj.name))) {
+      found.push(obj);
+    }
+  });
+  return found;
+}
+
+function mergeUniqueNodes(primary: Object3D[], supplement: Object3D[]): Object3D[] {
+  const merged = [...primary];
+  const seen = new Set(primary.map((node) => node.uuid));
+
+  for (const node of supplement) {
+    if (seen.has(node.uuid)) continue;
+    merged.push(node);
+    seen.add(node.uuid);
+  }
+
+  return merged;
+}
+
 /** GLB PerspectiveCamera → name 지정 Empty → fallback 패턴 순으로 CCTV 앵커 수집 */
 export function collectCctvMarkers(root: Object3D): CctvMarkerSource[] {
   const perspectiveCameras: PerspectiveCamera[] = [];
@@ -27,7 +55,7 @@ export function collectCctvMarkers(root: Object3D): CctvMarkerSource[] {
   });
 
   if (perspectiveCameras.length > 0) {
-    return perspectiveCameras.map((node) => ({
+    return perspectiveCameras.slice(0, CCTV_MARKER_FALLBACK_MAX).map((node) => ({
       id: node.uuid,
       name: node.name || "camera",
       node,
@@ -48,15 +76,14 @@ export function collectCctvMarkers(root: Object3D): CctvMarkerSource[] {
       ? [{ id: node.uuid, name: node.name || name, node }]
       : [];
   });
-  if (named.length > 0) return named;
+  if (named.length > 0) {
+    return named.slice(0, CCTV_MARKER_FALLBACK_MAX);
+  }
 
-  const fallback: Object3D[] = [];
-  root.traverse((obj) => {
-    if (!obj.name) return;
-    if (CCTV_MARKER_FALLBACK_PATTERNS.some((pattern) => pattern.test(obj.name))) {
-      fallback.push(obj);
-    }
-  });
+  const fallback = mergeUniqueNodes(
+    collectNodesByPatterns(root, CCTV_MARKER_FALLBACK_PATTERNS),
+    collectNodesByPatterns(root, CCTV_MARKER_SUPPLEMENT_PATTERNS),
+  );
 
   fallback.sort((a, b) => a.name.localeCompare(b.name));
 

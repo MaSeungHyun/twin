@@ -5,6 +5,7 @@ import Canvas from "./Canvas";
 import Controls from "./Controls";
 import CompassController from "./CompassController";
 import FollowShadowLight from "./FollowShadowLight";
+import LoadProgressSync from "./LoadProgressSync";
 import OfficeCameraFlyer from "./OfficeCameraFlyer";
 import SceneShadowSync from "./SceneShadowSync";
 import { Sky, StatsGl } from "@react-three/drei";
@@ -23,6 +24,7 @@ export default function ViewportScene() {
       <SceneShadowSync />
       <FollowShadowLight />
       <Controls />
+      <LoadProgressSync />
       <CompassController />
       <OfficeCameraFlyer />
       <Office />

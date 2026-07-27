@@ -78,25 +78,53 @@ export function unmountPooledCctvVideo(container: HTMLElement) {
 
 const MOBILE_PRELOAD_STAGGER_MS = 200;
 
-/** Office CCTV — GLB보다 먼저 호출 가능, 모바일은 순차 preload */
-export function preloadOfficeVideos(urls: readonly string[]) {
-  const stagger = isMobileDevice() ? MOBILE_PRELOAD_STAGGER_MS : 0;
-  urls.forEach((url, index) => {
-    if (stagger === 0) {
-      acquireCctvVideo(url);
-      return;
-    }
-    window.setTimeout(() => acquireCctvVideo(url), index * stagger);
-  });
+function markVideoReady(
+  video: HTMLVideoElement,
+  onReady: () => void,
+) {
+  if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+    onReady();
+    return;
+  }
+
+  const done = () => onReady();
+  video.addEventListener("canplay", done, { once: true });
+  video.addEventListener("error", done, { once: true });
 }
 
-/** 모듈 로드 직후 idle 시점에 warm-up */
-export function scheduleOfficeVideoPreload(urls: readonly string[]) {
-  if (typeof window === "undefined") return;
-  const run = () => preloadOfficeVideos(urls);
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(run, { timeout: 1500 });
-  } else {
-    (window as any).setTimeout(run, 0);
+/** Office CCTV — GLB보다 먼저 호출 가능, 모바일은 순차 preload */
+export function preloadOfficeVideos(urls: readonly string[]) {
+  preloadOfficeVideosWithProgress(urls, () => {});
+}
+
+/** 영상 preload + 진행률(0~100) 콜백 */
+export function preloadOfficeVideosWithProgress(
+  urls: readonly string[],
+  onProgress: (percent: number) => void,
+) {
+  if (urls.length === 0) {
+    onProgress(100);
+    return;
   }
+
+  let readyCount = 0;
+  const report = () => {
+    readyCount += 1;
+    onProgress(Math.round((readyCount / urls.length) * 100));
+  };
+
+  const stagger = isMobileDevice() ? MOBILE_PRELOAD_STAGGER_MS : 0;
+  urls.forEach((url, index) => {
+    const loadOne = () => {
+      const video = acquireCctvVideo(url);
+      markVideoReady(video, report);
+    };
+
+    if (stagger === 0) {
+      loadOne();
+      return;
+    }
+
+    window.setTimeout(loadOne, index * stagger);
+  });
 }

@@ -5,6 +5,7 @@ import { Group, LoopOnce, Mesh } from "three";
 import model from "@/assets/model/Seperate_Office.glb";
 import { useOfficeCameraStore } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
+import { useInitialLoadStore } from "@/stores/initialLoadStore";
 import {
   collectOfficeCameras,
 } from "@/three/officeCamera";
@@ -12,10 +13,8 @@ import { collectCctvMarkers } from "@/three/cctvMarkers";
 import CameraWithVideo from "./CameraWithVideo";
 import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
 import {
-  getCctvVideoForMarker,
-  OFFICE_CAMERA_VIDEO_URLS,
+  getCctvVideoByIndex,
 } from "@/data/officeCameraVideos";
-import { preloadOfficeVideos } from "@/lib/cctvVideoPool";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
@@ -52,13 +51,16 @@ function OfficeModel() {
   const clearCeilingCommand = useOfficeStore((s) => s.clearCeilingCommand);
   const setCeilingOpen = useOfficeStore((s) => s.setCeilingOpen);
   const setViews = useOfficeCameraStore((s) => s.setViews);
+  const setModelProgress = useInitialLoadStore((s) => s.setModelProgress);
 
   const cctvMarkers = useMemo(
     () => collectCctvMarkers(gltf.scene),
     [gltf.scene],
   );
 
-  useEffect(() => preloadOfficeVideos([...OFFICE_CAMERA_VIDEO_URLS]), []);
+  useEffect(() => {
+    setModelProgress(100);
+  }, [gltf.scene, setModelProgress]);
 
   useEffect(() => {
     setViews(collectOfficeCameras(gltf.scene));
@@ -119,12 +121,12 @@ function OfficeModel() {
     <group ref={group}>
       <CctvHtmlLayoutSync />
       <primitive object={gltf.scene} />
-      {cctvMarkers.map((marker) => (
+      {cctvMarkers.map((marker, index) => (
         <CameraWithVideo
           key={marker.id}
           anchor={marker.node}
           markerName={marker.name}
-          videoSrc={getCctvVideoForMarker(marker.id)}
+          videoSrc={getCctvVideoByIndex(index)}
         />
       ))}
     </group>
