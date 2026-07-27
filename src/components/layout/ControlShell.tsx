@@ -9,7 +9,7 @@ import { useDevices } from "@/hooks/useDevices";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useScheduleStore } from "@/stores/scheduleStore";
 import { useUiStore } from "@/stores/uiStore";
-// import { ThreeViewport } from "@/three/ThreeViewport";
+import { ThreeViewport } from "@/three/ThreeViewport";
 
 export function ControlShell() {
   const leftPanelOpen = useUiStore((s) => s.leftPanelOpen);
@@ -35,14 +35,13 @@ export function ControlShell() {
       style={{
         zIndex: 9999,
         backgroundColor: "rgba(0, 0, 0, 0)",
-        pointerEvents: "none",
       }}
     >
       <HeaderBar />
 
-      {/* <div className="app-shell__viewport">
+      <div className="app-shell__viewport">
         <ThreeViewport />
-      </div> */}
+      </div>
 
       <div className="app-shell__overlay">
         <OverlayPanel
