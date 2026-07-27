@@ -25,10 +25,10 @@ const panelAsideBase =
   "pointer-events-none absolute top-[calc(var(--shell-top)+0.5rem)] z-[9999] flex h-[calc(100dvh-var(--shell-top)-var(--shell-bottom)-0.5rem)] max-h-[calc(100dvh-var(--shell-top)-var(--shell-bottom)-0.5rem)] overflow-hidden max-[720px]:left-3 max-[720px]:right-3 max-[720px]:w-auto";
 
 const panelGlass =
-  "pointer-events-auto flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--hud-radius)] border border-border bg-panel-strong shadow-[0_16px_40px_rgba(0,0,0,0.32)] backdrop-blur-[var(--glass-blur)] motion-safe:animate-[hud-panel-in_0.2s_ease] motion-reduce:animate-none";
+  "pointer-events-auto flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--hud-radius)] border border-border bg-panel-strong/70 shadow-[0_16px_40px_rgba(0,0,0,0.32)] backdrop-blur-[var(--glass-blur)] motion-safe:animate-[hud-panel-in_0.2s_ease] motion-reduce:animate-none";
 
 const panelHeader =
-  "relative z-[2] flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.08] bg-panel-strong py-[0.85rem] pr-[0.85rem] pb-3 pl-4";
+  "relative z-[2] flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.08] bg-panel-strong/80 py-[0.85rem] pr-[0.85rem] pb-3 pl-4";
 
 const panelTitle =
   "m-0 text-[0.98rem] font-semibold tracking-[-0.02em] text-text";
@@ -61,7 +61,9 @@ export function OverlayPanel({
     <aside
       className={cn(
         panelAsideBase,
-        isLeft ? "left-[1.15rem] flex-row items-stretch" : "right-[1.15rem] flex-row-reverse items-stretch gap-[0.35rem]",
+        isLeft
+          ? "left-[1.15rem] flex-row items-stretch"
+          : "right-[1.15rem] flex-row-reverse items-stretch gap-[0.35rem]",
         expanded
           ? "left-[1.15rem] right-[1.15rem] z-[2] w-auto max-[1100px]:left-3 max-[1100px]:right-3"
           : wide
