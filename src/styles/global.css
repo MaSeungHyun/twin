@@ -9,7 +9,7 @@
   --color-muted: #8f98a8;
   --color-border: rgba(255, 255, 255, 0.14);
   --color-panel: rgba(14, 18, 26, 0.52);
-  --color-panel-strong: rgba(14, 18, 26, 0.72);
+  --color-panel-strong: rgba(14, 18, 26, 0.82);
   --color-severity-critical: #e8797f;
   --color-severity-warning: #d4a84b;
   --color-severity-ok: #6bbf8a;
@@ -22,6 +22,36 @@
   --font-ui: 'IBM Plex Sans', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --shadow-float: 0 10px 36px rgba(0, 0, 0, 0.28);
+}
+
+@keyframes hud-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility scrollbar-hud {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+  }
 }
 
 *,
@@ -330,178 +360,6 @@ body {
   margin: 0 0.1rem;
 }
 
-/* ── Floating overlay panels ── */
-
-.overlay-panel {
-  position: absolute;
-  top: calc(var(--shell-top) + 0.5rem);
-  bottom: var(--shell-bottom);
-  display: flex;
-  pointer-events: none;
-  height: calc(100dvh - var(--shell-top) - var(--shell-bottom) - 0.5rem);
-  max-height: calc(100dvh - var(--shell-top) - var(--shell-bottom) - 0.5rem);
-  overflow: hidden;
-  z-index: 1;
-}
-
-.overlay-panel--left {
-  left: 1.15rem;
-  flex-direction: row;
-  align-items: stretch;
-}
-
-.overlay-panel--right {
-  right: 1.15rem;
-  flex-direction: row-reverse;
-  align-items: stretch;
-  gap: 0.35rem;
-}
-
-.overlay-panel--open {
-  width: min(var(--panel-width), calc(100vw - 2.3rem));
-}
-
-.overlay-panel--open.overlay-panel--wide {
-  width: min(32rem, calc(100vw - 2.3rem));
-}
-
-.overlay-panel--open.overlay-panel--expanded {
-  left: 1.15rem;
-  right: 1.15rem;
-  width: auto;
-  z-index: 2;
-}
-
-.overlay-panel__expand {
-  pointer-events: auto;
-  align-self: center;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 1.55rem;
-  height: 3.1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.65rem;
-  background: var(--color-panel-strong);
-  color: var(--color-muted);
-  font-size: 1.15rem;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: var(--shadow-float);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  transition:
-    color 0.15s,
-    background 0.15s,
-    border-color 0.15s;
-}
-
-.overlay-panel__expand:hover {
-  color: var(--color-text);
-  border-color: rgba(122, 162, 255, 0.35);
-  background: rgba(122, 162, 255, 0.1);
-}
-
-.overlay-panel__expand:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.overlay-panel__glass {
-  pointer-events: auto;
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--hud-radius);
-  background: var(--color-panel-strong);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  overflow: hidden;
-  animation: hud-panel-in 0.2s ease;
-}
-
-@keyframes hud-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.overlay-panel__header {
-  position: relative;
-  z-index: 2;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.85rem 0.85rem 0.75rem 1rem;
-  background-color: var(--color-panel-strong);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.overlay-panel__title {
-  margin: 0;
-  font-size: 0.98rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--color-text);
-}
-
-.overlay-panel__close {
-  position: relative;
-  z-index: 3;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  margin: 0;
-  padding: 0;
-  border-radius: 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--color-text);
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  pointer-events: auto;
-  transition:
-    background 0.15s,
-    border-color 0.15s;
-}
-
-.overlay-panel__close:hover {
-  border-color: rgba(122, 162, 255, 0.35);
-  background: rgba(122, 162, 255, 0.1);
-}
-
-.overlay-panel__close:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.overlay-panel__content {
-  position: relative;
-  z-index: 1;
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  padding: 0.9rem 1rem 1rem;
-}
-
 /* ── Viewport placeholder ── */
 
 .three-viewport {
@@ -762,7 +620,6 @@ body {
 
 /* ── Scrollbars ── */
 
-.overlay-panel__content,
 .schedule-panel__scroll,
 .schedule-panel__filters,
 .alarm-list,
@@ -771,7 +628,6 @@ body {
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
-.overlay-panel__content::-webkit-scrollbar,
 .schedule-panel__scroll::-webkit-scrollbar,
 .schedule-panel__filters::-webkit-scrollbar,
 .alarm-list::-webkit-scrollbar,
@@ -780,7 +636,6 @@ body {
   height: 6px;
 }
 
-.overlay-panel__content::-webkit-scrollbar-track,
 .schedule-panel__scroll::-webkit-scrollbar-track,
 .schedule-panel__filters::-webkit-scrollbar-track,
 .alarm-list::-webkit-scrollbar-track,
@@ -788,7 +643,6 @@ body {
   background: transparent;
 }
 
-.overlay-panel__content::-webkit-scrollbar-thumb,
 .schedule-panel__scroll::-webkit-scrollbar-thumb,
 .schedule-panel__filters::-webkit-scrollbar-thumb,
 .alarm-list::-webkit-scrollbar-thumb,
@@ -829,7 +683,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  /* 스크롤은 overlay-panel__content가 담당 — ul flex 스크롤은 브라우저마다 깨짐 */
+  /* 스크롤은 패널 content 영역(scrollbar-hud)이 담당 — ul flex 스크롤은 브라우저마다 깨짐 */
   flex: 0 0 auto;
 }
 
@@ -1445,20 +1299,6 @@ body {
     --shell-top: 6.75rem;
   }
 
-  .overlay-panel--open {
-    width: min(20.5rem, calc(100vw - 1.5rem));
-  }
-
-  .overlay-panel--open.overlay-panel--wide {
-    width: min(28rem, calc(100vw - 1.5rem));
-  }
-
-  .overlay-panel--open.overlay-panel--expanded {
-    left: 0.75rem;
-    right: 0.75rem;
-    width: auto;
-  }
-
   .cctv-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1481,31 +1321,6 @@ body {
     display: none;
   }
 
-  .overlay-panel--open {
-    width: calc(100vw - 1.5rem);
-  }
-
-  .overlay-panel--open.overlay-panel--wide {
-    width: calc(100vw - 1.5rem);
-  }
-
-  .overlay-panel--open.overlay-panel--expanded {
-    left: 0.75rem;
-    right: 0.75rem;
-    width: auto;
-  }
-
-  .overlay-panel--left.overlay-panel--open,
-  .overlay-panel--right.overlay-panel--open {
-    left: 0.75rem;
-    right: 0.75rem;
-    width: auto;
-  }
-
-  .overlay-panel__expand {
-    display: none;
-  }
-
   .cctv-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1519,11 +1334,5 @@ body {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .overlay-panel__glass {
-    animation: none;
   }
 }
