@@ -22,7 +22,7 @@ export default function CompassWidget() {
 
   return (
     <div
-      className="pointer-events-auto fixed right-5 bottom-5 z-100"
+      className="pointer-events-auto fixed right-10 bottom-5 z-100"
       aria-label="나침반"
     >
       <div className="relative size-42 lg:size-36 select-none">
