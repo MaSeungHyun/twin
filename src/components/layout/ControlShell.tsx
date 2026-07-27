@@ -3,6 +3,7 @@ import { useCallback, useEffect } from "react";
 import { BottomDock } from "@/components/layout/BottomDock";
 import { HeaderBar } from "@/components/layout/HeaderBar";
 import { OverlayPanel } from "@/components/layout/OverlayPanel";
+import OfficeUI from "@/components/model/OfficeUI";
 import { AlarmPanel } from "@/components/panels/AlarmPanel";
 import { RightPanel, rightPanelTitle } from "@/components/panels/RightPanel";
 import { useAlarms } from "@/hooks/useAlarms";
@@ -83,6 +84,7 @@ export function ControlShell() {
         </OverlayPanel>
       </div>
 
+      <OfficeUI />
       <BottomDock />
     </div>
   );

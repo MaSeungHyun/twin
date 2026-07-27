@@ -253,6 +253,12 @@ body {
   background: rgba(107, 191, 138, 0.08);
 }
 
+.hud-badge--resolution {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+}
+
 .hud-badge--muted {
   color: var(--color-muted);
 }
@@ -360,6 +366,72 @@ body {
   height: 1.25rem;
   background: rgba(255, 255, 255, 0.1);
   margin: 0 0.1rem;
+}
+
+/* ── Office floor bar (above bottom dock) ── */
+
+.hud-floor-bar {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--shell-bottom) + 0.35rem);
+  z-index: 44;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: min(96vw, 36rem);
+  padding: 0.35rem;
+  border-radius: 0.85rem;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.hud-floor-bar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.1rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  background: transparent;
+  color: var(--color-muted);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.hud-floor-bar__btn:hover:not(:disabled) {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.hud-floor-bar__btn--active {
+  color: var(--color-text);
+  background: rgba(122, 162, 255, 0.16);
+  border-color: rgba(122, 162, 255, 0.35);
+}
+
+.hud-floor-bar__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.hud-floor-bar__btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* ── Viewport placeholder ── */

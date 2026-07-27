@@ -84,6 +84,7 @@ export function convertRepeatedMeshesToInstanced(
   })
 
   const matrix = new Matrix4()
+  const parentInv = new Matrix4()
   let groupCount = 0
   let instanceCount = 0
   let replacedMeshes = 0
@@ -109,14 +110,18 @@ export function convertRepeatedMeshesToInstanced(
     instanced.name = `Instanced:${template.name || geometry.uuid.slice(0, 8)}`
     instanced.frustumCulled = true
 
+    root.add(instanced)
+    instanced.updateMatrixWorld()
+    parentInv.copy(instanced.matrixWorld).invert()
+
     for (let i = 0; i < meshes.length; i++) {
-      matrix.copy(meshes[i].matrixWorld)
+      matrix.copy(meshes[i].matrixWorld).premultiply(parentInv)
       instanced.setMatrixAt(i, matrix)
     }
     instanced.instanceMatrix.needsUpdate = true
+    instanced.computeBoundingBox()
     instanced.computeBoundingSphere()
-
-    root.add(instanced)
+    instanced.frustumCulled = false
 
     for (const mesh of meshes) {
       mesh.removeFromParent()

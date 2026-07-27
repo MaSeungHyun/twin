@@ -1,5 +1,6 @@
 import { getStationBundle } from "@/data/stations/registry";
 import { useClock } from "@/hooks/useClock";
+import { useIsMobileDevice } from "@/hooks/useIsMobileDevice";
 import { cn } from "@/lib/utils";
 import type { ScheduleStatus } from "@/stores/scheduleStore";
 import { useScheduleStore } from "@/stores/scheduleStore";
@@ -31,6 +32,8 @@ export function HeaderBar() {
   const selectZone = useUiStore((s) => s.selectZone);
   const scheduleStatus = useScheduleStore((s) => s.status);
   const tagoBadge = tagoBadgeForStatus(scheduleStatus);
+  const mobile = useIsMobileDevice();
+  const videoQuality = mobile ? "720p" : "1080p";
 
   return (
     <header className="hud-top">
@@ -65,6 +68,12 @@ export function HeaderBar() {
       <div className="hud-island hud-island--meta" aria-label="데이터 상태">
         <span className={cn("hud-badge", tagoBadge.className)}>
           {tagoBadge.label}
+        </span>
+        <span
+          className="hud-badge hud-badge--resolution"
+          aria-label={mobile ? "모바일 720p 영상" : "데스크톱 1080p 영상"}
+        >
+          {videoQuality}
         </span>
         <span className="hud-badge hud-badge--muted">Mock · CCTV</span>
       </div>

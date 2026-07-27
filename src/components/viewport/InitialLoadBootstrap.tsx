@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { OFFICE_CAMERA_VIDEO_URLS } from "@/data/officeCameraVideos";
+import { getOfficeCameraVideoUrls } from "@/data/officeCameraVideos";
 import { preloadOfficeVideosWithProgress } from "@/lib/cctvVideoPool";
 import { useInitialLoadStore } from "@/stores/initialLoadStore";
 
@@ -9,7 +9,7 @@ export default function InitialLoadBootstrap() {
   const setVideoProgress = useInitialLoadStore((s) => s.setVideoProgress);
 
   useEffect(() => {
-    preloadOfficeVideosWithProgress(OFFICE_CAMERA_VIDEO_URLS, setVideoProgress);
+    preloadOfficeVideosWithProgress(getOfficeCameraVideoUrls(), setVideoProgress);
   }, [setVideoProgress]);
 
   return null;

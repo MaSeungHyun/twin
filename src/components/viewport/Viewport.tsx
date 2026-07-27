@@ -1,7 +1,6 @@
 // import ModelSelector from "../model/ModelSelector";
 // import RenderTestControls from "./RenderTestControls";
 import CctvVideoPopup from "../panels/CctvVideoPopup";
-import OfficeUI from "../model/OfficeUI";
 import CompassWidget from "./CompassWidget";
 import Fallback from "./Fallback";
 import InitialLoadBootstrap from "./InitialLoadBootstrap";
@@ -18,7 +17,6 @@ export default function Viewport() {
       </div>
 
       <div className="pointer-events-none absolute inset-0 z-30">
-        <OfficeUI />
         <CompassWidget />
       </div>
 

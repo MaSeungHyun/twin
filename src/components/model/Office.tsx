@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
-import { Group, Mesh } from "three";
+import { Group } from "three";
 
 import model from "@/assets/model/Seperate_Office.glb";
 import { getCctvVideoByIndex } from "@/data/officeCameraVideos";
@@ -22,6 +22,8 @@ import {
 } from "@/three/gltfLoader";
 import { collectOfficeCameras } from "@/three/officeCamera";
 import { collectOfficeFloorObjects } from "@/three/officeFloorVisibility";
+import { ensureOfficeFloorClones } from "@/three/officeFloorClones";
+import { prepareOfficeScene } from "@/three/prepareOfficeScene";
 
 import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
 import CameraWithVideo from "./CameraWithVideo";
@@ -38,17 +40,11 @@ function OfficeModel() {
     extendGltfLoader,
   );
 
-  const applyShadow = () => {
-    gltf.scene.traverse((child) => {
-      if (child instanceof Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-      }
-    });
-  };
-
-  useEffect(() => {
-    applyShadow();
+  const scene = useMemo(() => {
+    const instance = gltf.scene.clone(true);
+    prepareOfficeScene(instance);
+    ensureOfficeFloorClones(instance);
+    return instance;
   }, [gltf.scene]);
 
   const floorCommand = useOfficeStore((s) => s.floorCommand);
@@ -61,22 +57,22 @@ function OfficeModel() {
   const setModelProgress = useInitialLoadStore((s) => s.setModelProgress);
 
   const cctvMarkers = useMemo(
-    () => collectCctvMarkers(gltf.scene),
-    [gltf.scene],
+    () => collectCctvMarkers(scene),
+    [scene],
   );
 
   const floorObjects = useMemo(
-    () => collectOfficeFloorObjects(gltf.scene),
-    [gltf.scene],
+    () => collectOfficeFloorObjects(scene),
+    [scene],
   );
 
   useEffect(() => {
     setModelProgress(100);
-  }, [gltf.scene, setModelProgress]);
+  }, [scene, setModelProgress]);
 
   useEffect(() => {
-    setViews(collectOfficeCameras(gltf.scene));
-  }, [gltf.scene, setViews]);
+    setViews(collectOfficeCameras(scene));
+  }, [scene, setViews]);
 
   useEffect(() => {
     if (floorObjects.size === 0) return;
@@ -86,7 +82,7 @@ function OfficeModel() {
 
       disposeOfficeFloorLayout(floorLayoutRef.current);
 
-      const layout = createOfficeFloorLayout(gltf.scene, floorObjects);
+      const layout = createOfficeFloorLayout(scene, floorObjects);
       floorLayoutRef.current = layout;
       floorLayoutReadyRef.current = layout !== null;
 
@@ -99,7 +95,7 @@ function OfficeModel() {
     };
   }, [
     floorObjects,
-    gltf.scene,
+    scene,
     setActiveFloorAction,
     setAvailableFloorActions,
   ]);
@@ -130,7 +126,7 @@ function OfficeModel() {
   return (
     <group ref={group}>
       <CctvHtmlLayoutSync />
-      <primitive object={gltf.scene} />
+      <primitive object={scene} />
       {cctvMarkers.map((marker, index) => (
         <CameraWithVideo
           key={marker.id}
