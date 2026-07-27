@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import {
-  OFFICE_CAMERA_IDS,
-  useOfficeCameraStore,
-} from "@/stores/officeCameraStore";
+// import {
+//   OFFICE_CAMERA_IDS,
+//   useOfficeCameraStore,
+// } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
 
 const btnBase =
@@ -14,10 +14,10 @@ export default function OfficeUI() {
   const openCeiling = useOfficeStore((s) => s.openCeiling);
   const closeCeiling = useOfficeStore((s) => s.closeCeiling);
 
-  const views = useOfficeCameraStore((s) => s.views);
-  const activeId = useOfficeCameraStore((s) => s.activeId);
-  const isFlying = useOfficeCameraStore((s) => s.isFlying);
-  const flyTo = useOfficeCameraStore((s) => s.flyTo);
+  // const views = useOfficeCameraStore((s) => s.views);
+  // const activeId = useOfficeCameraStore((s) => s.activeId);
+  // const isFlying = useOfficeCameraStore((s) => s.isFlying);
+  // const flyTo = useOfficeCameraStore((s) => s.flyTo);
 
   const ceilingBusy = ceilingCommand !== null;
 
@@ -52,7 +52,7 @@ export default function OfficeUI() {
       </div>
 
       <div className="grid grid-cols-3 gap-2" aria-label="Office camera views">
-        {OFFICE_CAMERA_IDS.map((id) => {
+        {/* {OFFICE_CAMERA_IDS.map((id) => {
           const view = views[id];
           const isActive = activeId === id;
 
@@ -73,7 +73,7 @@ export default function OfficeUI() {
               {id}
             </button>
           );
-        })}
+        })} */}
       </div>
     </div>
   );
