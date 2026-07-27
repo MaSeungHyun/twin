@@ -67,8 +67,8 @@ export function OverlayPanel({
         expanded
           ? "left-[1.15rem] right-[1.15rem] z-[2] w-auto max-[1100px]:left-3 max-[1100px]:right-3"
           : wide
-            ? "w-[min(32rem,calc(100vw-5.3rem))] max-[1100px]:w-[min(28rem,calc(100vw-1.5rem))] max-[640px]:w-[calc(100vw-1.5rem)]"
-            : "w-[min(var(--panel-width),calc(100vw-5.3rem))] max-[1100px]:w-[min(20.5rem,calc(100vw-1.5rem))] max-[640px]:w-[calc(100vw-1.5rem)]",
+            ? "w-[min(32rem,calc(100vw-5.3rem))] max-[1100px]:w-[min(25.5rem,calc(100vw-1.5rem))] max-[640px]:w-[calc(100vw-1.5rem)]"
+            : "w-[min(var(--panel-width),calc(100vw-5.3rem))] max-[1100px]:w-[min(18rem,calc(100vw-1.5rem))] max-[640px]:w-[calc(100vw-1.5rem)]",
       )}
       aria-label={title}
     >
