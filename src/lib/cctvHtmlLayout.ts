@@ -33,6 +33,15 @@ const PADDING = 20;
 const CLUSTER_RADIUS = 220;
 const SMOOTHING = 0.2;
 const RETURN_SMOOTHING = 0.1;
+/** 화면 좌/우에 있는 단독 마커 — 패널을 같은 쪽으로 밀어 선 교차 완화 */
+const DIRECTIONAL_BIAS_PX = 72;
+
+function compareByScreenX(a: MarkerEntry, b: MarkerEntry) {
+  const ax = baseCenter(a).x;
+  const bx = baseCenter(b).x;
+  if (Math.abs(ax - bx) > 1) return ax - bx;
+  return a.id.localeCompare(b.id);
+}
 
 function baseCenter(entry: MarkerEntry) {
   return {
@@ -87,13 +96,13 @@ function findClusters(entries: MarkerEntry[]): MarkerEntry[][] {
   return [...groups.values()];
 }
 
-// ─── Step 2: 클러스터 내 좌우 슬롯 배치 (id 순서 고정) ───
+// ─── Step 2: 클러스터 내 좌우 슬롯 배치 (화면 X 좌표 순) ───
 
 function computeHorizontalSlotTargets(cluster: MarkerEntry[]) {
   const targets = new Map<string, { x: number; y: number }>();
   if (cluster.length < 2) return targets;
 
-  const sorted = [...cluster].sort((a, b) => a.id.localeCompare(b.id));
+  const sorted = [...cluster].sort(compareByScreenX);
   const n = sorted.length;
   const maxW = Math.max(...sorted.map((entry) => entry.width));
   const step = maxW + PADDING;
@@ -122,10 +131,29 @@ function computeHorizontalSlotTargets(cluster: MarkerEntry[]) {
   return targets;
 }
 
-// ─── Step 3: 전체 target sep (클러스터 슬롯 우선) ───
+/** 단독 마커 — 앵커가 왼쪽이면 패널도 왼쪽, 오른쪽이면 오른쪽 */
+function computeDirectionalBias(entry: MarkerEntry, viewport: ViewportSize) {
+  const base = baseCenter(entry);
+  const cx = viewport.width / 2;
+  if (cx <= 0) return { x: 0, y: 0 };
 
-function computeTargetSeparations(entries: MarkerEntry[]) {
+  const t = Math.max(-1, Math.min(1, (base.x - cx) / cx));
+
+  return {
+    x: t * DIRECTIONAL_BIAS_PX,
+    y: 0,
+  };
+}
+
+// ─── Step 3: 전체 target sep (클러스터 슬롯 · 단독 방향 bias) ───
+
+function computeTargetSeparations(
+  entries: MarkerEntry[],
+  viewport: ViewportSize,
+) {
   const target = new Map<string, { x: number; y: number }>();
+  const slottedIds = new Set<string>();
+
   for (const entry of entries) {
     target.set(entry.id, { x: 0, y: 0 });
   }
@@ -136,7 +164,13 @@ function computeTargetSeparations(entries: MarkerEntry[]) {
     const slots = computeHorizontalSlotTargets(cluster);
     for (const [id, sep] of slots) {
       target.set(id, sep);
+      slottedIds.add(id);
     }
+  }
+
+  for (const entry of entries) {
+    if (slottedIds.has(entry.id)) continue;
+    target.set(entry.id, computeDirectionalBias(entry, viewport));
   }
 
   return target;
@@ -229,7 +263,7 @@ export function updateCctvHtmlMarker(id: string, update: MarkerLayoutUpdate) {
  * CCTV Html layout:
  * 1. active 마커 수집
  * 2. 가까운 마커 클러스터링
- * 3. 클러스터 내 좌·중·우 슬롯 target 계산
+ * 3. 클러스터 내 화면 X 순 좌·우 슬롯 target 계산
  * 4. sep 보간 → viewport clamp → DOM 적용
  */
 export function resolveCctvHtmlMarkerLayout(viewport: ViewportSize) {
@@ -242,7 +276,7 @@ export function resolveCctvHtmlMarkerLayout(viewport: ViewportSize) {
 
   if (entries.length === 0) return;
 
-  const targets = computeTargetSeparations(entries);
+  const targets = computeTargetSeparations(entries, viewport);
   const spreading = [...targets.values()].some(
     (t) => Math.abs(t.x) > 0.5 || Math.abs(t.y) > 0.5,
   );

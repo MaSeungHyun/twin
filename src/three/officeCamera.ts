@@ -7,7 +7,14 @@ const _dir = new Vector3();
 const _target = new Vector3();
 const _quat = new Quaternion();
 
-export const OFFICE_CAMERA_IDS = ["office", "office2", "cafe"] as const;
+export const OFFICE_CAMERA_IDS = [
+  "office",
+  "office2",
+  "cafe",
+  "lobby",
+  "office3",
+  "conf-room",
+] as const;
 export type OfficeCameraId = (typeof OFFICE_CAMERA_IDS)[number];
 
 export const SPACE_CAMERA_LOOK_DISTANCE = 6;
@@ -113,7 +120,9 @@ export function applySpaceCameraTransform(
   camera.quaternion.set(...view.rotation);
   camera.updateMatrixWorld();
   camera.getWorldDirection(_dir);
-  controls.target.copy(camera.position).addScaledVector(_dir, SPACE_CAMERA_LOOK_DISTANCE);
+  controls.target
+    .copy(camera.position)
+    .addScaledVector(_dir, SPACE_CAMERA_LOOK_DISTANCE);
   controls.update();
 }
 
