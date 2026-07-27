@@ -1,13 +1,7 @@
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Group,
-  Object3D,
-  Vector3,
-  type Camera,
-  type PerspectiveCamera,
-} from "three";
+import { Group, Object3D, Vector3, type Camera } from "three";
 
 import { usePooledCctvVideo } from "@/hooks/usePooledCctvVideo";
 import {
@@ -17,7 +11,16 @@ import {
   getStableCctvAlarmSeverity,
 } from "@/lib/cctvAlarm";
 import { clampPanelToViewport, worldToScreen } from "@/lib/cctvLeaderLine";
+import {
+  registerCctvHtmlMarker,
+  unregisterCctvHtmlMarker,
+  updateCctvHtmlMarker,
+} from "@/lib/cctvHtmlLayout";
 import { acquireCctvVideo } from "@/lib/cctvVideoPool";
+import {
+  CCTV_MARKER_LIFT_Y,
+  getCctvMarkerWorldOffset,
+} from "@/data/cctvMarkerOffsets";
 import { cn } from "@/lib/utils";
 import { useCctvAlarmActive, useCctvAlarmStore } from "@/stores/cctvAlarmStore";
 import {
@@ -30,6 +33,18 @@ import { useCctvPopupStore } from "@/stores/cctvPopupStore";
 
 const _worldPos = new Vector3();
 const _calcPos = new Vector3();
+const _cameraPos = new Vector3();
+
+function applyMarkerWorldOffset(
+  source: Object3D,
+  offset: [number, number, number],
+  target: Vector3,
+) {
+  source.getWorldPosition(target);
+  target.x += offset[0];
+  target.y += offset[1];
+  target.z += offset[2];
+}
 
 function calculateMarkerPosition(
   el: Object3D,
@@ -43,12 +58,14 @@ function calculateMarkerPosition(
 }
 
 type CameraWithVideoProps = {
-  camera: PerspectiveCamera;
+  anchor: Object3D;
+  markerName: string;
   videoSrc: string;
 };
 
 export default function CameraWithVideo({
-  camera,
+  anchor,
+  markerName,
   videoSrc,
 }: CameraWithVideoProps) {
   const groupRef = useRef<Group>(null);
@@ -58,6 +75,7 @@ export default function CameraWithVideo({
   const lineRef = useRef<SVGLineElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const wasHoveredRef = useRef(false);
+  const isPointerOverRef = useRef(false);
   const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(
     null,
   );
@@ -66,11 +84,14 @@ export default function CameraWithVideo({
   const viewCamera = useThree((state) => state.camera);
   const size = useThree((state) => state.size);
 
+  const markerId = anchor.uuid;
+
   const alarmSeverity = useMemo(
-    () => getStableCctvAlarmSeverity(camera.name),
-    [camera.name],
+    () => getStableCctvAlarmSeverity(markerName),
+    [markerName],
   );
-  const isAlarmActive = useCctvAlarmActive(camera.uuid);
+  const markerOffset = useMemo(() => getCctvMarkerWorldOffset(), []);
+  const isAlarmActive = useCctvAlarmActive(markerId);
   const dismissAlarm = useCctvAlarmStore((state) => state.dismiss);
   const openPopup = useCctvPopupStore((state) => state.open);
   const isPopupOpen = useCctvPopupStore((state) => state.isOpen);
@@ -80,7 +101,7 @@ export default function CameraWithVideo({
     (state) => state.clearHoveredId,
   );
 
-  const hostsVideo = !(isPopupOpen && popupCameraId === camera.uuid);
+  const hostsVideo = !(isPopupOpen && popupCameraId === markerId);
   const markerVisible = !isPopupOpen;
 
   usePooledCctvVideo(videoContainer, videoSrc, hostsVideo, {
@@ -97,31 +118,31 @@ export default function CameraWithVideo({
   const handleOpenPopup = useCallback(() => {
     const video = acquireCctvVideo(videoSrc);
     openPopup({
-      cameraId: camera.uuid,
-      cameraName: camera.name,
+      cameraId: markerId,
+      cameraName: markerName,
       videoSrc,
       alarmSeverity,
       startTime: video.currentTime,
     });
-  }, [alarmSeverity, camera.name, camera.uuid, openPopup, videoSrc]);
+  }, [alarmSeverity, markerId, markerName, openPopup, videoSrc]);
 
   const handleDismissAlarm = useCallback(
     (event: React.MouseEvent | React.KeyboardEvent) => {
       event.stopPropagation();
-      dismissAlarm(camera.uuid);
+      dismissAlarm(markerId);
     },
-    [camera.uuid, dismissAlarm],
+    [markerId, dismissAlarm],
   );
 
   const resetPointerOver = useCallback(() => {
     setIsPointerOver(false);
-    clearHoveredId(camera.uuid);
-  }, [camera.uuid, clearHoveredId]);
+    clearHoveredId(markerId);
+  }, [markerId, clearHoveredId]);
 
   const handlePointerEnter = useCallback(() => {
     setIsPointerOver(true);
-    setHoveredId(camera.uuid);
-  }, [camera.uuid, setHoveredId]);
+    setHoveredId(markerId);
+  }, [markerId, setHoveredId]);
 
   const handlePointerLeave = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -134,6 +155,15 @@ export default function CameraWithVideo({
     },
     [resetPointerOver],
   );
+
+  useEffect(() => {
+    registerCctvHtmlMarker(markerId);
+    return () => unregisterCctvHtmlMarker(markerId);
+  }, [markerId]);
+
+  useEffect(() => {
+    isPointerOverRef.current = isPointerOver;
+  }, [isPointerOver]);
 
   useEffect(() => {
     if (!isPointerOver) return;
@@ -157,6 +187,16 @@ export default function CameraWithVideo({
   }, [isPointerOver, resetPointerOver]);
 
   useFrame(() => {
+    anchor.updateWorldMatrix(true, false);
+    const group = groupRef.current;
+    if (!group) return;
+
+    applyMarkerWorldOffset(anchor, markerOffset, _worldPos);
+    group.position.copy(_worldPos);
+    group.updateWorldMatrix(true, false);
+  }, -1);
+
+  useFrame(() => {
     const group = groupRef.current;
     const htmlPortal = htmlPortalRef.current;
     const panel = panelRef.current;
@@ -164,12 +204,10 @@ export default function CameraWithVideo({
     const line = lineRef.current;
     if (!group) return;
 
-    camera.updateWorldMatrix(true, false);
-    camera.getWorldPosition(_worldPos);
-    group.position.copy(_worldPos);
+    applyMarkerWorldOffset(anchor, markerOffset, _worldPos);
 
     const hoveredId = useCctvMarkerHoverStore.getState().hoveredId;
-    const isHoveredNow = hoveredId === camera.uuid;
+    const isHoveredNow = hoveredId === markerId;
 
     if (htmlPortal) {
       if (markerVisible) {
@@ -192,10 +230,37 @@ export default function CameraWithVideo({
       wasHoveredRef.current = isHoveredNow;
     }
 
-    if (!panel || !wrapper || !markerVisible) return;
+    if (!markerVisible) {
+      updateCctvHtmlMarker(markerId, {
+        active: false,
+        panel: null,
+        line: null,
+        anchorX: 0,
+        anchorY: 0,
+        width: 0,
+        height: 0,
+        base: { offsetX: 0, offsetY: 0, clamped: false },
+        clamped: false,
+        lineStartX: 0,
+        lineStartY: 0,
+        showLine: false,
+      });
+      return;
+    }
+
+    if (!panel || !wrapper) return;
 
     _worldPos.project(viewCamera);
     const screen = worldToScreen(_worldPos.x, _worldPos.y, _worldPos.z, size);
+
+    anchor.getWorldPosition(_cameraPos);
+    _cameraPos.project(viewCamera);
+    const cameraScreen = worldToScreen(
+      _cameraPos.x,
+      _cameraPos.y,
+      _cameraPos.z,
+      size,
+    );
 
     wrapper.style.visibility = "visible";
 
@@ -207,14 +272,25 @@ export default function CameraWithVideo({
       size,
     );
 
-    panel.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+    const scale = isPointerOverRef.current ? 1.5 : 1;
+    const layoutWidth = panel.offsetWidth * scale;
+    const layoutHeight = panel.offsetHeight * scale;
 
-    if (line) {
-      line.setAttribute("x2", String(offsetX));
-      line.setAttribute("y2", String(offsetY));
-      line.style.opacity = clamped || screen.offScreen ? "1" : "0";
-    }
-  }, 100);
+    updateCctvHtmlMarker(markerId, {
+      anchorX: screen.x,
+      anchorY: screen.y,
+      width: layoutWidth,
+      height: layoutHeight,
+      base: { offsetX, offsetY, clamped },
+      clamped,
+      active: true,
+      panel,
+      line,
+      lineStartX: cameraScreen.x - screen.x,
+      lineStartY: cameraScreen.y - screen.y,
+      showLine: clamped || screen.offScreen || CCTV_MARKER_LIFT_Y > 0,
+    });
+  }, 99);
 
   return (
     <group ref={groupRef}>
@@ -242,7 +318,7 @@ export default function CameraWithVideo({
               x2={0}
               y2={0}
               stroke="rgba(77, 163, 255, 0.9)"
-              strokeWidth={1.5}
+              strokeWidth={3}
               strokeLinecap="round"
               style={{ opacity: 0 }}
             />
@@ -259,7 +335,7 @@ export default function CameraWithVideo({
                 handleOpenPopup();
               }
             }}
-            className="relative w-[200px] origin-center touch-manipulation cursor-pointer"
+            className="relative w-[100px] md:w-[120px] lg:w-[120px] origin-center touch-manipulation cursor-pointer"
           >
             <div
               ref={cardRef}
@@ -275,7 +351,7 @@ export default function CameraWithVideo({
               onPointerCancel={handlePointerLeave}
             >
               <div className="bg-accent/20 text-text flex items-center gap-1 px-2 py-1 text-xs font-semibold">
-                <span>{camera.name}</span>
+                <span>{markerName}</span>
                 {isAlarmActive && (
                   <button
                     type="button"

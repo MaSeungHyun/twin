@@ -7,11 +7,12 @@ import { useOfficeCameraStore } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
 import {
   collectOfficeCameras,
-  collectSceneCameras,
 } from "@/three/officeCamera";
+import { collectCctvMarkers } from "@/three/cctvMarkers";
 import CameraWithVideo from "./CameraWithVideo";
+import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
 import {
-  getOfficeCameraVideo,
+  getCctvVideoForMarker,
   OFFICE_CAMERA_VIDEO_URLS,
 } from "@/data/officeCameraVideos";
 import { preloadOfficeVideos } from "@/lib/cctvVideoPool";
@@ -52,8 +53,8 @@ function OfficeModel() {
   const setCeilingOpen = useOfficeStore((s) => s.setCeilingOpen);
   const setViews = useOfficeCameraStore((s) => s.setViews);
 
-  const sceneCameras = useMemo(
-    () => collectSceneCameras(gltf.scene),
+  const cctvMarkers = useMemo(
+    () => collectCctvMarkers(gltf.scene),
     [gltf.scene],
   );
 
@@ -116,14 +117,16 @@ function OfficeModel() {
 
   return (
     <group ref={group}>
+      <CctvHtmlLayoutSync />
       <primitive object={gltf.scene} />
-      {sceneCameras.map((cam) => {
-        const videoSrc = getOfficeCameraVideo(cam.name);
-        if (!videoSrc) return null;
-        return (
-          <CameraWithVideo key={cam.uuid} camera={cam} videoSrc={videoSrc} />
-        );
-      })}
+      {cctvMarkers.map((marker) => (
+        <CameraWithVideo
+          key={marker.id}
+          anchor={marker.node}
+          markerName={marker.name}
+          videoSrc={getCctvVideoForMarker(marker.id)}
+        />
+      ))}
     </group>
   );
 }
