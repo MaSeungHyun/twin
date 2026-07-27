@@ -3,6 +3,7 @@ import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { useViewportTestStore } from "@/stores/viewportTestStore";
 import Canvas from "./Canvas";
 import Controls from "./Controls";
+import CompassController from "./CompassController";
 import FollowShadowLight from "./FollowShadowLight";
 import OfficeCameraFlyer from "./OfficeCameraFlyer";
 import SceneShadowSync from "./SceneShadowSync";
@@ -22,6 +23,7 @@ export default function ViewportScene() {
       <SceneShadowSync />
       <FollowShadowLight />
       <Controls />
+      <CompassController />
       <OfficeCameraFlyer />
       <Office />
       <EffectComposer enabled={postProcessingEnabled} multisampling={4}>

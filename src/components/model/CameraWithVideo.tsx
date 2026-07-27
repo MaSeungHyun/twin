@@ -335,7 +335,7 @@ export default function CameraWithVideo({
                 handleOpenPopup();
               }
             }}
-            className="relative w-[100px] md:w-[120px] lg:w-[120px] origin-center touch-manipulation cursor-pointer"
+            className="relative w-[100px] md:w-[120px] lg:w-[150px] origin-center touch-manipulation cursor-pointer"
           >
             <div
               ref={cardRef}
