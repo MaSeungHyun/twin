@@ -1,30 +1,36 @@
 import { Suspense, useEffect, useMemo, useRef } from "react";
-import { useAnimations, useGLTF } from "@react-three/drei";
-import { Group, LoopOnce, Mesh } from "three";
+import { useGLTF } from "@react-three/drei";
+import { Group, Mesh } from "three";
 
 import model from "@/assets/model/Seperate_Office.glb";
+import { getCctvVideoByIndex } from "@/data/officeCameraVideos";
+import { useInitialLoadStore } from "@/stores/initialLoadStore";
 import { useOfficeCameraStore } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
-import { useInitialLoadStore } from "@/stores/initialLoadStore";
-import {
-  collectOfficeCameras,
-} from "@/three/officeCamera";
 import { collectCctvMarkers } from "@/three/cctvMarkers";
-import CameraWithVideo from "./CameraWithVideo";
-import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
 import {
-  getCctvVideoByIndex,
-} from "@/data/officeCameraVideos";
+  animateOfficeFloorLayout,
+  createOfficeFloorLayout,
+  disposeOfficeFloorLayout,
+  getAvailableFloorActions,
+  type OfficeFloorLayout,
+} from "@/three/officeFloorGsap";
 import {
   GLTF_USE_DRACO,
   GLTF_USE_MESHOPT,
   extendGltfLoader,
 } from "@/three/gltfLoader";
+import { collectOfficeCameras } from "@/three/officeCamera";
+import { collectOfficeFloorObjects } from "@/three/officeFloorVisibility";
 
-const ACTION_NAME = "cellingAction";
+import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
+import CameraWithVideo from "./CameraWithVideo";
 
 function OfficeModel() {
   const group = useRef<Group>(null);
+  const floorLayoutRef = useRef<OfficeFloorLayout | null>(null);
+  const floorLayoutReadyRef = useRef(false);
+
   const gltf = useGLTF(
     model,
     GLTF_USE_DRACO,
@@ -45,16 +51,22 @@ function OfficeModel() {
     applyShadow();
   }, [gltf.scene]);
 
-  const { actions, mixer } = useAnimations(gltf.animations, group);
-
-  const ceilingCommand = useOfficeStore((s) => s.ceilingCommand);
-  const clearCeilingCommand = useOfficeStore((s) => s.clearCeilingCommand);
-  const setCeilingOpen = useOfficeStore((s) => s.setCeilingOpen);
+  const floorCommand = useOfficeStore((s) => s.floorCommand);
+  const clearFloorCommand = useOfficeStore((s) => s.clearFloorCommand);
+  const setActiveFloorAction = useOfficeStore((s) => s.setActiveFloorAction);
+  const setAvailableFloorActions = useOfficeStore(
+    (s) => s.setAvailableFloorActions,
+  );
   const setViews = useOfficeCameraStore((s) => s.setViews);
   const setModelProgress = useInitialLoadStore((s) => s.setModelProgress);
 
   const cctvMarkers = useMemo(
     () => collectCctvMarkers(gltf.scene),
+    [gltf.scene],
+  );
+
+  const floorObjects = useMemo(
+    () => collectOfficeFloorObjects(gltf.scene),
     [gltf.scene],
   );
 
@@ -67,55 +79,53 @@ function OfficeModel() {
   }, [gltf.scene, setViews]);
 
   useEffect(() => {
-    const action = actions[ACTION_NAME];
-    if (!action) return;
+    if (floorObjects.size === 0) return;
 
-    action.clampWhenFinished = true;
-    action.setLoop(LoopOnce, 1);
-    action.play();
-    action.paused = true;
-    action.time = 0;
-  }, [actions]);
+    const frameId = requestAnimationFrame(() => {
+      if (floorLayoutReadyRef.current && floorLayoutRef.current) return;
 
-  useEffect(() => {
-    if (!mixer) return;
+      disposeOfficeFloorLayout(floorLayoutRef.current);
 
-    const onFinished = (event: {
-      action: { getClip: () => { name: string } };
-    }) => {
-      if (event.action.getClip().name !== ACTION_NAME) return;
-      const action = actions[ACTION_NAME];
-      if (!action) return;
+      const layout = createOfficeFloorLayout(gltf.scene, floorObjects);
+      floorLayoutRef.current = layout;
+      floorLayoutReadyRef.current = layout !== null;
 
-      const open = action.timeScale >= 0;
-      setCeilingOpen(open);
-      clearCeilingCommand();
+      setAvailableFloorActions(getAvailableFloorActions(floorObjects));
+      setActiveFloorAction(layout ? "Default" : null);
+    });
+
+    return () => {
+      cancelAnimationFrame(frameId);
     };
-
-    mixer.addEventListener("finished", onFinished);
-    return () => mixer.removeEventListener("finished", onFinished);
-  }, [actions, mixer, clearCeilingCommand, setCeilingOpen]);
+  }, [
+    floorObjects,
+    gltf.scene,
+    setActiveFloorAction,
+    setAvailableFloorActions,
+  ]);
 
   useEffect(() => {
-    const action = actions[ACTION_NAME];
-    if (!action || !ceilingCommand) return;
+    return () => {
+      disposeOfficeFloorLayout(floorLayoutRef.current);
+      floorLayoutRef.current = null;
+      floorLayoutReadyRef.current = false;
+    };
+  }, []);
 
-    action.clampWhenFinished = true;
-    action.setLoop(LoopOnce, 1);
-    action.paused = false;
+  useEffect(() => {
+    if (!floorCommand) return;
 
-    if (ceilingCommand === "open") {
-      action.timeScale = 1;
-      action.play();
+    const layout = floorLayoutRef.current;
+    if (!layout) {
+      clearFloorCommand();
       return;
     }
 
-    action.timeScale = -1;
-    if (action.time <= 0) {
-      action.time = action.getClip().duration;
-    }
-    action.play();
-  }, [actions, ceilingCommand]);
+    animateOfficeFloorLayout(layout, floorCommand, () => {
+      setActiveFloorAction(floorCommand);
+      clearFloorCommand();
+    });
+  }, [clearFloorCommand, floorCommand, setActiveFloorAction]);
 
   return (
     <group ref={group}>
@@ -125,6 +135,7 @@ function OfficeModel() {
         <CameraWithVideo
           key={marker.id}
           anchor={marker.node}
+          floor={marker.floor}
           markerName={marker.name}
           videoSrc={getCctvVideoByIndex(index)}
         />

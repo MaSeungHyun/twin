@@ -78,10 +78,7 @@ export function unmountPooledCctvVideo(container: HTMLElement) {
 
 const MOBILE_PRELOAD_STAGGER_MS = 200;
 
-function markVideoReady(
-  video: HTMLVideoElement,
-  onReady: () => void,
-) {
+function markVideoReady(video: HTMLVideoElement, onReady: () => void) {
   if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
     onReady();
     return;

@@ -1,27 +1,32 @@
 import { create } from "zustand";
 
-export type CeilingCommand = "open" | "close";
+import type { OfficeFloorActionId } from "@/data/officeFloorActions";
 
 type OfficeState = {
-  ceilingCommand: CeilingCommand | null;
-  isCeilingOpen: boolean;
-  openCeiling: () => void;
-  closeCeiling: () => void;
-  clearCeilingCommand: () => void;
-  setCeilingOpen: (open: boolean) => void;
+  availableFloorActions: OfficeFloorActionId[];
+  activeFloorAction: OfficeFloorActionId | null;
+  floorCommand: OfficeFloorActionId | null;
+  setAvailableFloorActions: (actions: OfficeFloorActionId[]) => void;
+  playFloorAction: (actionId: OfficeFloorActionId) => void;
+  clearFloorCommand: () => void;
+  setActiveFloorAction: (actionId: OfficeFloorActionId | null) => void;
 };
 
 export const useOfficeStore = create<OfficeState>((set, get) => ({
-  ceilingCommand: null,
-  isCeilingOpen: false,
-  openCeiling: () => {
-    if (get().isCeilingOpen) return;
-    set({ ceilingCommand: "open" });
+  availableFloorActions: [],
+  activeFloorAction: null,
+  floorCommand: null,
+
+  setAvailableFloorActions: (availableFloorActions) =>
+    set({ availableFloorActions }),
+
+  playFloorAction: (actionId) => {
+    if (get().floorCommand !== null) return;
+    if (!get().availableFloorActions.includes(actionId)) return;
+    set({ floorCommand: actionId });
   },
-  closeCeiling: () => {
-    if (!get().isCeilingOpen) return;
-    set({ ceilingCommand: "close" });
-  },
-  clearCeilingCommand: () => set({ ceilingCommand: null }),
-  setCeilingOpen: (open) => set({ isCeilingOpen: open }),
+
+  clearFloorCommand: () => set({ floorCommand: null }),
+
+  setActiveFloorAction: (activeFloorAction) => set({ activeFloorAction }),
 }));

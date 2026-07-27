@@ -30,6 +30,8 @@ import {
   useCctvMarkerHoverStore,
 } from "@/stores/cctvMarkerHoverStore";
 import { useCctvPopupStore } from "@/stores/cctvPopupStore";
+import { useOfficeStore } from "@/stores/officeStore";
+import type { OfficeFloorObjectKey } from "@/three/officeFloorVisibility";
 
 const _worldPos = new Vector3();
 const _calcPos = new Vector3();
@@ -61,12 +63,14 @@ type CameraWithVideoProps = {
   anchor: Object3D;
   markerName: string;
   videoSrc: string;
+  floor?: OfficeFloorObjectKey | null;
 };
 
 export default function CameraWithVideo({
   anchor,
   markerName,
   videoSrc,
+  floor = null,
 }: CameraWithVideoProps) {
   const groupRef = useRef<Group>(null);
   const htmlPortalRef = useRef<HTMLElement | null>(null);
@@ -91,6 +95,15 @@ export default function CameraWithVideo({
     [markerName],
   );
   const markerOffset = useMemo(() => getCctvMarkerWorldOffset(), []);
+  const markerVisibleByFloor = useOfficeStore((state) => {
+    if (state.floorCommand !== null) return false;
+    return (
+      state.activeFloorAction != null &&
+      state.activeFloorAction !== "Default" &&
+      floor != null &&
+      state.activeFloorAction === floor
+    );
+  });
   const isAlarmActive = useCctvAlarmActive(markerId);
   const dismissAlarm = useCctvAlarmStore((state) => state.dismiss);
   const openPopup = useCctvPopupStore((state) => state.open);
@@ -101,8 +114,9 @@ export default function CameraWithVideo({
     (state) => state.clearHoveredId,
   );
 
-  const hostsVideo = !(isPopupOpen && popupCameraId === markerId);
-  const markerVisible = !isPopupOpen;
+  const hostsVideo =
+    markerVisibleByFloor && !(isPopupOpen && popupCameraId === markerId);
+  const markerVisible = markerVisibleByFloor && !isPopupOpen;
 
   usePooledCctvVideo(videoContainer, videoSrc, hostsVideo, {
     className:
@@ -162,6 +176,26 @@ export default function CameraWithVideo({
   }, [markerId]);
 
   useEffect(() => {
+    if (markerVisibleByFloor) return;
+
+    clearHoveredId(markerId);
+    updateCctvHtmlMarker(markerId, {
+      active: false,
+      panel: null,
+      line: null,
+      anchorX: 0,
+      anchorY: 0,
+      width: 0,
+      height: 0,
+      base: { offsetX: 0, offsetY: 0, clamped: false },
+      clamped: false,
+      lineStartX: 0,
+      lineStartY: 0,
+      showLine: false,
+    });
+  }, [clearHoveredId, markerId, markerVisibleByFloor]);
+
+  useEffect(() => {
     isPointerOverRef.current = isPointerOver;
   }, [isPointerOver]);
 
@@ -187,6 +221,8 @@ export default function CameraWithVideo({
   }, [isPointerOver, resetPointerOver]);
 
   useFrame(() => {
+    if (!markerVisibleByFloor) return;
+
     anchor.updateWorldMatrix(true, false);
     const group = groupRef.current;
     if (!group) return;
@@ -202,7 +238,10 @@ export default function CameraWithVideo({
     const panel = panelRef.current;
     const wrapper = wrapperRef.current;
     const line = lineRef.current;
-    if (!group) return;
+    if (!group || !markerVisibleByFloor) return;
+
+    const popupOpen = useCctvPopupStore.getState().isOpen;
+    const markerVisibleNow = !popupOpen;
 
     applyMarkerWorldOffset(anchor, markerOffset, _worldPos);
 
@@ -210,9 +249,7 @@ export default function CameraWithVideo({
     const isHoveredNow = hoveredId === markerId;
 
     if (htmlPortal) {
-      if (markerVisible) {
-        htmlPortal.style.display = "block";
-      }
+      htmlPortal.style.display = markerVisibleNow ? "block" : "none";
 
       htmlPortal.style.zIndex = String(
         isHoveredNow
@@ -230,7 +267,7 @@ export default function CameraWithVideo({
       wasHoveredRef.current = isHoveredNow;
     }
 
-    if (!markerVisible) {
+    if (!markerVisibleNow) {
       updateCctvHtmlMarker(markerId, {
         active: false,
         panel: null,
@@ -294,6 +331,7 @@ export default function CameraWithVideo({
 
   return (
     <group ref={groupRef}>
+      {markerVisibleByFloor ? (
       <Html
         center
         calculatePosition={calculateMarkerPosition}
@@ -301,7 +339,6 @@ export default function CameraWithVideo({
         zIndexRange={CCTV_MARKER_Z_INDEX_DEFAULT}
         style={{
           pointerEvents: markerVisible ? "auto" : "none",
-          visibility: markerVisible ? "visible" : "hidden",
         }}
       >
         <div ref={setWrapperRef} className="relative">
@@ -371,6 +408,7 @@ export default function CameraWithVideo({
           </div>
         </div>
       </Html>
+      ) : null}
     </group>
   );
 }
