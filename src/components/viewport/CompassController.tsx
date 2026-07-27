@@ -1,7 +1,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { Vector3 } from "three";
+import { Vector3, type PerspectiveCamera } from "three";
 
 import {
   cameraPositionForCardinal,
@@ -13,7 +13,7 @@ const _goalPos = new Vector3();
 
 /** 카메라 heading 동기화 + 나침반 클릭 시 회전 */
 export default function CompassController() {
-  const camera = useThree((s) => s.camera);
+  const camera = useThree((s) => s.camera) as PerspectiveCamera;
   const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
   const goalPosRef = useRef<Vector3 | null>(null);
 
@@ -21,7 +21,7 @@ export default function CompassController() {
     if (!controls) return;
 
     const store = useCompassStore.getState();
-    store.setHeading(computeCameraHeading(camera.position, controls.target));
+    store.setHeading(computeCameraHeading(camera));
 
     const target = store.rotateTarget;
     if (!target) {

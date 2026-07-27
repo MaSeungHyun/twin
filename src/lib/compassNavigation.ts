@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { PerspectiveCamera, Vector3 } from "three";
 
 export type CardinalDirection = "N" | "E" | "S" | "W";
 
@@ -11,18 +11,29 @@ const CARDINAL_VIEW: Record<CardinalDirection, Vector3> = {
 };
 
 const _view = new Vector3();
+const _worldUp = new Vector3();
 const _goal = new Vector3();
 
 /** 카메라 시선 heading (rad). 0=북, 시계방향+ */
-export function computeCameraHeading(
-  cameraPos: Vector3,
-  target: Vector3,
-): number {
-  _view.copy(target).sub(cameraPos);
+export function computeCameraHeading(camera: PerspectiveCamera): number {
+  camera.getWorldDirection(_view);
   _view.y = 0;
-  if (_view.lengthSq() < 1e-8) return 0;
-  _view.normalize();
-  return Math.atan2(_view.x, -_view.z);
+
+  // 수평 시선 — 바라보는 방향
+  if (_view.lengthSq() > 1e-6) {
+    _view.normalize();
+    return Math.atan2(_view.x, -_view.z);
+  }
+
+  // 탑다운/바텀뷰 — 시선이 수직이면 화면 위쪽(로컬 Y)을 지면에 투영
+  _worldUp.set(0, 1, 0).applyQuaternion(camera.quaternion);
+  _worldUp.y = 0;
+  if (_worldUp.lengthSq() > 1e-6) {
+    _worldUp.normalize();
+    return Math.atan2(_worldUp.x, -_worldUp.z);
+  }
+
+  return 0;
 }
 
 /** Orbit 카메라를 해당 방향으로 보도록 position 계산 (거리·높이 유지) */
