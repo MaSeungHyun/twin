@@ -332,82 +332,82 @@ export default function CameraWithVideo({
   return (
     <group ref={groupRef}>
       {markerVisibleByFloor ? (
-      <Html
-        center
-        calculatePosition={calculateMarkerPosition}
-        wrapperClass="cctv-html-marker"
-        zIndexRange={CCTV_MARKER_Z_INDEX_DEFAULT}
-        style={{
-          pointerEvents: markerVisible ? "auto" : "none",
-        }}
-      >
-        <div ref={setWrapperRef} className="relative">
-          <svg
-            aria-hidden
-            className="pointer-events-none absolute top-1/2 left-1/2 overflow-visible"
-            width={1}
-            height={1}
-          >
-            <line
-              ref={lineRef}
-              x1={0}
-              y1={0}
-              x2={0}
-              y2={0}
-              stroke="rgba(77, 163, 255, 0.9)"
-              strokeWidth={3}
-              strokeLinecap="round"
-              style={{ opacity: 0 }}
-            />
-          </svg>
-
-          <div
-            ref={panelRef}
-            role="button"
-            tabIndex={0}
-            onClick={handleOpenPopup}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                handleOpenPopup();
-              }
-            }}
-            className="relative w-[100px] md:w-[120px] lg:w-[150px] origin-center touch-manipulation cursor-pointer"
-          >
-            <div
-              ref={cardRef}
-              className={cn(
-                "bg-bg/95 origin-center overflow-hidden rounded-md border-2 shadow-lg transition-transform duration-150 ease-out",
-                isAlarmActive
-                  ? cctvAlarmRingClass(alarmSeverity)
-                  : "border-border",
-              )}
-              style={{ transform: isPointerOver ? "scale(1.5)" : "scale(1)" }}
-              onPointerEnter={handlePointerEnter}
-              onPointerLeave={handlePointerLeave}
-              onPointerCancel={handlePointerLeave}
+        <Html
+          center
+          calculatePosition={calculateMarkerPosition}
+          wrapperClass="cctv-html-marker"
+          zIndexRange={CCTV_MARKER_Z_INDEX_DEFAULT}
+          style={{
+            pointerEvents: markerVisible ? "auto" : "none",
+          }}
+        >
+          <div ref={setWrapperRef} className="relative">
+            <svg
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 left-1/2 overflow-visible"
+              width={1}
+              height={1}
             >
-              <div className="bg-accent/20 text-text flex items-center gap-1 px-2 py-1 text-xs font-semibold">
-                <span>{markerName}</span>
-                {isAlarmActive && (
-                  <button
-                    type="button"
-                    className={cctvAlarmBadgeClass(alarmSeverity)}
-                    onClick={handleDismissAlarm}
-                    aria-label={`Dismiss ${cctvAlarmLabel(alarmSeverity)} alarm`}
-                  >
-                    {cctvAlarmLabel(alarmSeverity)}
-                  </button>
-                )}
-              </div>
-              <div
-                ref={setVideoContainer}
-                className="block aspect-video w-full bg-black"
+              <line
+                ref={lineRef}
+                x1={0}
+                y1={0}
+                x2={0}
+                y2={0}
+                stroke="rgba(77, 163, 255, 0.9)"
+                strokeWidth={3}
+                strokeLinecap="round"
+                style={{ opacity: 0 }}
               />
+            </svg>
+
+            <div
+              ref={panelRef}
+              role="button"
+              tabIndex={0}
+              onClick={handleOpenPopup}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleOpenPopup();
+                }
+              }}
+              className="relative w-[100px] md:w-[120px] lg:w-[150px] origin-center touch-manipulation cursor-pointer"
+            >
+              <div
+                ref={cardRef}
+                className={cn(
+                  "bg-bg/95 origin-center overflow-hidden rounded-md border-2 shadow-lg transition-transform duration-150 ease-out",
+                  isAlarmActive
+                    ? cctvAlarmRingClass(alarmSeverity)
+                    : "border-border",
+                )}
+                style={{ transform: isPointerOver ? "scale(1.5)" : "scale(1)" }}
+                onPointerEnter={handlePointerEnter}
+                onPointerLeave={handlePointerLeave}
+                onPointerCancel={handlePointerLeave}
+              >
+                <div className="bg-accent/20 text-text flex items-center gap-1 px-2 py-1 text-xs font-semibold">
+                  <span>{markerName}</span>
+                  {isAlarmActive && (
+                    <button
+                      type="button"
+                      className={cctvAlarmBadgeClass(alarmSeverity)}
+                      onClick={handleDismissAlarm}
+                      aria-label={`Dismiss ${cctvAlarmLabel(alarmSeverity)} alarm`}
+                    >
+                      {cctvAlarmLabel(alarmSeverity)}
+                    </button>
+                  )}
+                </div>
+                <div
+                  ref={setVideoContainer}
+                  className="block aspect-video w-full bg-black"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </Html>
+        </Html>
       ) : null}
     </group>
   );
