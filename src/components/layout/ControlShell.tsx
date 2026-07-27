@@ -54,9 +54,9 @@ export function ControlShell() {
 
   return (
     <div className="app-shell">
-      <div className="app-shell__viewport">
+      {/* <div className="app-shell__viewport">
         <ThreeViewport />
-      </div>
+      </div> */}
 
       <HeaderBar />
 
