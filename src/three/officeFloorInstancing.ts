@@ -4,8 +4,9 @@ import {
   InstancedMesh,
   Matrix4,
   Mesh,
+  Object3D,
   StaticDrawUsage,
-  type Object3D,
+  Vector3,
 } from "three";
 
 import { FLOOR_OBJECT_CANDIDATES } from "@/data/officeFloorActions";
@@ -29,6 +30,13 @@ const UPPER_FLOOR_KEYS = ["2F", "3F", "4F"] as const satisfies ReadonlyArray<
 const _world = new Matrix4();
 const _parentInv = new Matrix4();
 const _zero = new Matrix4().makeScale(0, 0, 0);
+const _proxyWorld = new Vector3();
+
+export type OfficeFloorCameraProxy = {
+  floor: Exclude<OfficeFloorObjectKey, "1F">;
+  source: Camera;
+  proxy: Object3D;
+};
 
 export type OfficeFloorInstanceEntry = {
   instanced: InstancedMesh;
@@ -39,6 +47,7 @@ export type OfficeFloorInstanceRegistry = {
   instancesRoot: Group;
   entries: OfficeFloorInstanceEntry[];
   floorObjects: Map<OfficeFloorObjectKey, Object3D>;
+  cameraProxies: OfficeFloorCameraProxy[];
   referenceFloorY: number;
   stats: { meshes: number; drawCallsSaved: number };
 };
@@ -88,7 +97,52 @@ function collectCameras(root: Object3D): Camera[] {
   root.traverse((obj) => {
     if (isSceneCamera(obj)) cameras.push(obj);
   });
+  cameras.sort((a, b) => a.name.localeCompare(b.name));
   return cameras;
+}
+
+/** 2F~4F — F1 카메라 world + (anchor Y − F1 Y)로 proxy 위치 동기화 */
+export function syncCameraProxies(registry: OfficeFloorInstanceRegistry) {
+  const f1 = registry.floorObjects.get("1F");
+  if (!f1 || registry.cameraProxies.length === 0) return;
+
+  f1.updateMatrixWorld(true);
+
+  for (const { floor, source, proxy } of registry.cameraProxies) {
+    const anchor = registry.floorObjects.get(floor);
+    if (!anchor) continue;
+
+    source.updateMatrixWorld(true);
+    source.getWorldPosition(_proxyWorld);
+    _proxyWorld.y += anchor.position.y - f1.position.y;
+
+    anchor.updateMatrixWorld(true);
+    anchor.worldToLocal(_proxyWorld);
+    proxy.position.copy(_proxyWorld);
+    proxy.updateMatrixWorld(true);
+  }
+}
+
+function createCameraProxies(
+  f1: Object3D,
+  floors: Map<OfficeFloorObjectKey, Object3D>,
+): OfficeFloorCameraProxy[] {
+  const proxies: OfficeFloorCameraProxy[] = [];
+  const sourceCameras = collectCameras(f1);
+
+  for (const key of UPPER_FLOOR_KEYS) {
+    const anchor = floors.get(key);
+    if (!anchor) continue;
+
+    for (const source of sourceCameras) {
+      const proxy = new Object3D();
+      proxy.name = `CctvProxy:${key}:${source.name}`;
+      anchor.add(proxy);
+      proxies.push({ floor: key, source, proxy });
+    }
+  }
+
+  return proxies;
 }
 
 function ensureFloorAnchors(
@@ -118,37 +172,7 @@ function ensureFloorAnchors(
   return floors;
 }
 
-function cloneCamerasToUpperFloors(
-  f1: Object3D,
-  floors: Map<OfficeFloorObjectKey, Object3D>,
-) {
-  const sourceCameras = collectCameras(f1);
-  if (sourceCameras.length === 0) return;
-
-  const inv = new Matrix4();
-  const local = new Matrix4();
-
-  for (const key of UPPER_FLOOR_KEYS) {
-    const anchor = floors.get(key);
-    if (!anchor) continue;
-
-    anchor.updateMatrixWorld(true);
-    inv.copy(anchor.matrixWorld).invert();
-
-    for (const camera of sourceCameras) {
-      camera.updateMatrixWorld(true);
-      const clone = camera.clone(false);
-      local.copy(camera.matrixWorld).premultiply(inv);
-      clone.matrix.copy(local);
-      clone.matrix.decompose(clone.position, clone.quaternion, clone.scale);
-      clone.matrixAutoUpdate = true;
-      anchor.add(clone);
-    }
-  }
-}
-
-/** instance matrix — base world + 층 anchor Y 이동 */
-export function syncOfficeFloorInstances(
+/** instance matrix — base world + 층 anchor Y 이동 */export function syncOfficeFloorInstances(
   registry: OfficeFloorInstanceRegistry,
   floors: ReadonlyMap<OfficeFloorObjectKey, Object3D>,
   visibility: Readonly<Record<OfficeFloorObjectKey, boolean>> | null = null,
@@ -174,6 +198,8 @@ export function syncOfficeFloorInstances(
     }
     instanced.instanceMatrix.needsUpdate = true;
   }
+
+  syncCameraProxies(registry);
 }
 
 export function floorVisibilityForAction(
@@ -228,7 +254,7 @@ export function buildOfficeFloorInstances(root: Object3D): OfficeFloorInstanceRe
   root.updateMatrixWorld(true);
 
   const floors = ensureFloorAnchors(root, f1);
-  cloneCamerasToUpperFloors(f1, floors);
+  const cameraProxies = createCameraProxies(f1, floors);
 
   const instancesRoot = new Group();
   instancesRoot.name = "OfficeFloorInstances";
@@ -259,6 +285,7 @@ export function buildOfficeFloorInstances(root: Object3D): OfficeFloorInstanceRe
     instancesRoot,
     entries,
     floorObjects: floors,
+    cameraProxies,
     referenceFloorY: f1.position.y,
     stats: {
       meshes: entries.length,
