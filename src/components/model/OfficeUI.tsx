@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
+import { useInitialLoadStore } from "@/stores/initialLoadStore";
 // import {
 //   OFFICE_CAMERA_IDS,
 //   useOfficeCameraStore,
 // } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
-
+import { useEffect, useRef } from "react";
 const btnBase =
   "cursor-pointer rounded-md border px-3 py-1.5 text-xs transition-colors backdrop-blur-md disabled:cursor-not-allowed disabled:opacity-40";
 
@@ -20,9 +21,16 @@ export default function OfficeUI() {
   // const flyTo = useOfficeCameraStore((s) => s.flyTo);
 
   const ceilingBusy = ceilingCommand !== null;
+  const loadComplete = useInitialLoadStore((s) => s.dismissed);
+  const openedOnLoadRef = useRef(false);
 
-  return (
-    <div
+  useEffect(() => {
+    if (!loadComplete || openedOnLoadRef.current) return;
+    openedOnLoadRef.current = true;
+    openCeiling();
+  }, [loadComplete, openCeiling]);
+
+  return (    <div
       className="pointer-events-auto absolute top-6 left-60 z-2 flex flex-col gap-2"
       aria-label="Office controls"
     >

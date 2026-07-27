@@ -1,11 +1,13 @@
-import { Canvas as R3FCanvas, type Vector3 } from "@react-three/fiber";
+import { Canvas as R3FCanvas } from "@react-three/fiber";
 import { type WebGLRenderer } from "three";
 
 import { isMobileDevice } from "@/lib/device";
 import { bindGltfRenderer } from "@/three/gltfLoader";
+import {
+  INITIAL_CAMERA_POSITION,
+  INITIAL_CAMERA_QUATERNION,
+} from "@/three/initialCamera";
 import type { GpuPowerPreference } from "@/stores/viewportTestStore";
-
-const INITIAL_CAMERA_POSITION: Vector3 = [10, 20, 40];
 
 /** 레티나에서 fill-rate·VRAM 폭주 → context lost 완화 */
 function cappedDpr(): number {
@@ -35,7 +37,12 @@ export default function Canvas({
         stencil: false,
         depth: true,
       }}
-      camera={{ position: INITIAL_CAMERA_POSITION, near: 0.1, far: 1000 }}
+      camera={{
+        position: INITIAL_CAMERA_POSITION,
+        quaternion: INITIAL_CAMERA_QUATERNION,
+        near: 0.1,
+        far: 1000,
+      }}
       onCreated={({ gl }) => {
         const renderer = gl as WebGLRenderer;
         bindGltfRenderer(renderer);
