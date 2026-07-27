@@ -23,7 +23,7 @@ export default function OfficeUI() {
 
   return (
     <div
-      className="pointer-events-auto absolute top-12 left-10 z-2 flex flex-col gap-2"
+      className="pointer-events-auto absolute top-6 left-60 z-2 flex flex-col gap-2"
       aria-label="Office controls"
     >
       <div className="flex gap-2" aria-label="Office ceiling controls">

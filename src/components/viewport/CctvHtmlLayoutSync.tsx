@@ -8,7 +8,7 @@ export default function CctvHtmlLayoutSync() {
 
   useFrame(() => {
     resolveCctvHtmlMarkerLayout(size);
-  }, 100);
+  }, 500);
 
   return null;
 }

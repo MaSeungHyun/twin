@@ -20,7 +20,7 @@ export default function ViewportScene() {
 
   return (
     <Canvas antialias={antialiasEnabled} powerPreference={gpuPowerPreference}>
-      <Sky />
+      {/* <Sky /> */}
       <SceneShadowSync />
       <FollowShadowLight />
       <Controls />
@@ -36,7 +36,7 @@ export default function ViewportScene() {
           mipmapBlur
         />
       </EffectComposer>
-      <StatsGl className="pointer-events-none absolute top-12 right-10 z-2" />
+      <StatsGl className="pointer-events-none absolute top-18 right-4 z-2" />
     </Canvas>
   );
 }

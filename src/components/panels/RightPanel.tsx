@@ -6,9 +6,9 @@ import { RestroomPanel } from '@/components/panels/RestroomPanel'
 import { TrainSchedulePanel } from '@/components/panels/TrainSchedulePanel'
 
 const MODE_TITLES: Record<RightPanelMode, string> = {
-  schedule: 'Train schedule',
+  schedule: '열차 전광판',
   cctv: 'CCTV',
-  restroom: 'Restroom occupancy',
+  restroom: '화장실 재실',
 }
 
 export function RightPanel() {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from "react";
 
+import { BottomDock } from "@/components/layout/BottomDock";
 import { HeaderBar } from "@/components/layout/HeaderBar";
 import { OverlayPanel } from "@/components/layout/OverlayPanel";
 import { AlarmPanel } from "@/components/panels/AlarmPanel";
@@ -15,11 +16,33 @@ export function ControlShell() {
   const leftPanelOpen = useUiStore((s) => s.leftPanelOpen);
   const rightPanelOpen = useUiStore((s) => s.rightPanelOpen);
   const rightPanelMode = useUiStore((s) => s.rightPanelMode);
+  const cctvExpanded = useUiStore((s) => s.cctvExpanded);
   const toggleLeftPanel = useUiStore((s) => s.toggleLeftPanel);
   const toggleRightPanel = useUiStore((s) => s.toggleRightPanel);
+  const toggleCctvExpanded = useUiStore((s) => s.toggleCctvExpanded);
   const dismissFocus = useUiStore((s) => s.dismissFocus);
 
-  const handleEscape = useCallback(() => dismissFocus(), [dismissFocus]);
+  const isCctv = rightPanelMode === "cctv";
+
+  const handleEscape = useCallback(() => {
+    const ui = useUiStore.getState();
+    if (ui.cctvExpanded) {
+      ui.toggleCctvExpanded();
+      return;
+    }
+    if (ui.selectedAlarmId || ui.selectedDeviceId) {
+      dismissFocus();
+      return;
+    }
+    if (ui.leftPanelOpen) {
+      ui.toggleLeftPanel();
+      return;
+    }
+    if (ui.rightPanelOpen) {
+      ui.toggleRightPanel();
+    }
+  }, [dismissFocus]);
+
   useEscapeKey(handleEscape);
   useAlarms();
   useDevices();
@@ -30,26 +53,19 @@ export function ControlShell() {
   }, [refreshSchedule]);
 
   return (
-    <div
-      className="app-shell"
-      style={{
-        zIndex: 9999,
-        backgroundColor: "rgba(0, 0, 0, 0)",
-      }}
-    >
-      <HeaderBar />
-
+    <div className="app-shell">
       <div className="app-shell__viewport">
         <ThreeViewport />
       </div>
 
+      <HeaderBar />
+
       <div className="app-shell__overlay">
         <OverlayPanel
           side="left"
-          open={leftPanelOpen}
-          onToggle={toggleLeftPanel}
-          collapsedLabel="Alarms"
-          title="Alarms"
+          open={leftPanelOpen && !(isCctv && cctvExpanded)}
+          onClose={toggleLeftPanel}
+          title="알람"
         >
           <AlarmPanel />
         </OverlayPanel>
@@ -57,13 +73,17 @@ export function ControlShell() {
         <OverlayPanel
           side="right"
           open={rightPanelOpen}
-          onToggle={toggleRightPanel}
-          collapsedLabel="Panels"
+          onClose={toggleRightPanel}
           title={rightPanelTitle(rightPanelMode)}
+          wide={isCctv}
+          expanded={isCctv && cctvExpanded}
+          onToggleExpand={isCctv ? toggleCctvExpanded : undefined}
         >
           <RightPanel />
         </OverlayPanel>
       </div>
+
+      <BottomDock />
     </div>
   );
 }

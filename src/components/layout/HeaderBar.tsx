@@ -1,75 +1,73 @@
-import { getStationBundle } from '@/data/stations/registry'
-import { useClock } from '@/hooks/useClock'
-import { cn } from '@/lib/utils'
-import type { ScheduleStatus } from '@/stores/scheduleStore'
-import { useScheduleStore } from '@/stores/scheduleStore'
-import { useAlarmStore } from '@/stores/alarmStore'
-import { useUiStore } from '@/stores/uiStore'
+import { getStationBundle } from "@/data/stations/registry";
+import { useClock } from "@/hooks/useClock";
+import { cn } from "@/lib/utils";
+import type { ScheduleStatus } from "@/stores/scheduleStore";
+import { useScheduleStore } from "@/stores/scheduleStore";
+import { useUiStore } from "@/stores/uiStore";
 
-const STATION = getStationBundle('SEOUL')
+const STATION = getStationBundle("SEOUL");
 const ZONES = [...STATION.config.zones].sort(
   (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
-)
+);
 
 function tagoBadgeForStatus(status: ScheduleStatus) {
   switch (status) {
-    case 'fresh':
-      return { label: 'Live · TAGO', className: 'header-bar__badge--live' }
-    case 'stale':
-      return { label: 'TAGO Delayed', className: 'header-bar__badge--tago-warn' }
-    case 'error':
-      return { label: 'TAGO Unavailable', className: 'header-bar__badge--tago-error' }
-    case 'loading':
-      return { label: 'TAGO Loading', className: 'header-bar__badge--tago-muted' }
+    case "fresh":
+      return { label: "Live · TAGO", className: "hud-badge--live" };
+    case "stale":
+      return { label: "TAGO delayed", className: "hud-badge--warn" };
+    case "error":
+      return { label: "TAGO offline", className: "hud-badge--error" };
+    case "loading":
+      return { label: "TAGO…", className: "hud-badge--muted" };
     default:
-      return { label: 'TAGO', className: 'header-bar__badge--tago-muted' }
+      return { label: "TAGO", className: "hud-badge--muted" };
   }
 }
 
 export function HeaderBar() {
-  const clock = useClock()
-  const selectedZoneId = useUiStore((s) => s.selectedZoneId)
-  const unackedAlarmCount = useAlarmStore((s) => s.unackedCount)
-  const selectZone = useUiStore((s) => s.selectZone)
-  const scheduleStatus = useScheduleStore((s) => s.status)
-  const tagoBadge = tagoBadgeForStatus(scheduleStatus)
+  const clock = useClock();
+  const selectedZoneId = useUiStore((s) => s.selectedZoneId);
+  const selectZone = useUiStore((s) => s.selectZone);
+  const scheduleStatus = useScheduleStore((s) => s.status);
+  const tagoBadge = tagoBadgeForStatus(scheduleStatus);
 
   return (
-    <header className="header-bar">
-      <div className="header-bar__brand">
-        <span className="header-bar__station">
-          {STATION.config.displayName} Control
-        </span>
-        <span className="header-bar__clock tabular-nums">{clock}</span>
+    <header className="hud-top">
+      <div className="hud-island hud-island--brand">
+        <div className="hud-brand__text">
+          <span className="hud-brand__eyebrow">Station Twin</span>
+          <span className="hud-brand__station">
+            {STATION.config.displayName}
+          </span>
+        </div>
+        <time className="hud-brand__clock tabular-nums" dateTime={clock}>
+          {clock}
+        </time>
       </div>
 
-      <nav className="header-bar__zones" aria-label="Zone selection">
+      <nav className="hud-island hud-island--zones" aria-label="구역 선택">
         {ZONES.map((zone) => (
           <button
             key={zone.zoneId}
             type="button"
             className={cn(
-              'header-bar__chip',
-              selectedZoneId === zone.zoneId && 'header-bar__chip--active',
+              "hud-zone",
+              selectedZoneId === zone.zoneId && "hud-zone--active",
             )}
-            onClick={() => selectZone(zone.zoneId, zone.cameraPresetId)}
+            onClick={() => selectZone(zone.zoneId)}
           >
             {zone.name}
           </button>
         ))}
       </nav>
 
-      <div className="header-bar__meta">
-        {unackedAlarmCount > 0 && (
-          <span className="header-bar__unacked">
-            Unacked {unackedAlarmCount}
-          </span>
-        )}
-        <span className={cn('header-bar__badge', tagoBadge.className)}>
+      <div className="hud-island hud-island--meta" aria-label="데이터 상태">
+        <span className={cn("hud-badge", tagoBadge.className)}>
           {tagoBadge.label}
         </span>
-        <span className="header-bar__badge header-bar__badge--mock">Mock · CCTV</span>
+        <span className="hud-badge hud-badge--muted">Mock · CCTV</span>
       </div>
     </header>
-  )
+  );
 }

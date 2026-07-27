@@ -12,7 +12,7 @@ export function ThreeViewport() {
     <div
       className="three-viewport"
       data-pointer-over-panel={pointerOverPanel ? "" : undefined}
-      style={{ pointerEvents: "none", background: "transparent" }}
+      style={{ pointerEvents: "none", backgroundColor: "transparent" }}
     >
       {/* <span className="three-viewport__placeholder">Three.js Viewport</span> */}
     </div>
