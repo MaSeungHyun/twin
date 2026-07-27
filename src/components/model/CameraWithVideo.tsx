@@ -62,6 +62,7 @@ function calculateMarkerPosition(
 type CameraWithVideoProps = {
   anchor: Object3D;
   markerName: string;
+  videoTitle: string;
   videoSrc: string;
   floor?: OfficeFloorObjectKey | null;
 };
@@ -69,6 +70,7 @@ type CameraWithVideoProps = {
 export default function CameraWithVideo({
   anchor,
   markerName,
+  videoTitle,
   videoSrc,
   floor = null,
 }: CameraWithVideoProps) {
@@ -133,12 +135,12 @@ export default function CameraWithVideo({
     const video = acquireCctvVideo(videoSrc);
     openPopup({
       cameraId: markerId,
-      cameraName: markerName,
+      cameraName: videoTitle,
       videoSrc,
       alarmSeverity,
       startTime: video.currentTime,
     });
-  }, [alarmSeverity, markerId, markerName, openPopup, videoSrc]);
+  }, [alarmSeverity, markerId, openPopup, videoSrc, videoTitle]);
 
   const handleDismissAlarm = useCallback(
     (event: React.MouseEvent | React.KeyboardEvent) => {
@@ -388,7 +390,7 @@ export default function CameraWithVideo({
                 onPointerCancel={handlePointerLeave}
               >
                 <div className="bg-accent/20 text-text flex items-center gap-1 px-2 py-1 text-xs font-semibold">
-                  <span>{markerName}</span>
+                  <span>{videoTitle}</span>
                   {isAlarmActive && (
                     <button
                       type="button"

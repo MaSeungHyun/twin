@@ -23,6 +23,8 @@
   --font-ui: 'IBM Plex Sans', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --shadow-float: 0 10px 36px rgba(0, 0, 0, 0.28);
+  /* OverlayPanel — desktop 기본; 태블릿(≤1100px)은 아래 @media에서 덮어씀 */
+  --overlay-panel-width: 20rem;
 }
 
 @keyframes hud-panel-in {
@@ -1370,6 +1372,7 @@ body {
   :root,
   .app-shell {
     --shell-top: 6.75rem;
+    --overlay-panel-width: 13.75rem;
   }
 
   /* Overlay panel — 태블릿에서 촘촘하게, 더 많이 표시 */
@@ -1565,6 +1568,11 @@ body {
 }
 
 @media (max-width: 720px) {
+  :root,
+  .app-shell {
+    --overlay-panel-width: calc(100vw - 1.5rem);
+  }
+
   .hud-island--meta .hud-badge--muted {
     display: none;
   }

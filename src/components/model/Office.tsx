@@ -3,7 +3,7 @@ import { useGLTF } from "@react-three/drei";
 import { Group } from "three";
 
 import model from "@/assets/model/Seperate_Office.glb";
-import { getCctvVideoByIndex } from "@/data/officeCameraVideos";
+import { getCctvVideoByIndex, getCctvVideoTitleByIndex } from "@/data/officeCameraVideos";
 import { useInitialLoadStore } from "@/stores/initialLoadStore";
 import { useOfficeCameraStore } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
@@ -141,6 +141,7 @@ function OfficeModel() {
           anchor={marker.node}
           floor={marker.floor}
           markerName={marker.name}
+          videoTitle={getCctvVideoTitleByIndex(index)}
           videoSrc={getCctvVideoByIndex(index)}
         />
       ))}

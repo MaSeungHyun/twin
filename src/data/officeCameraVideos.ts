@@ -56,3 +56,8 @@ export function getCctvVideoByIndex(index: number): string {
   const urls = getOfficeCameraVideoUrls();
   return urls[index % urls.length];
 }
+
+/** 마커 제목용 — 비디오 파일명(확장자 제외) */
+export function getCctvVideoTitleByIndex(index: number): string {
+  return OFFICE_CAMERA_VIDEO_ORDER[index % OFFICE_CAMERA_VIDEO_ORDER.length];
+}

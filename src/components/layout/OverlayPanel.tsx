@@ -24,9 +24,10 @@ const panelPointerHandlers = {
 const panelAsideBase =
   "pointer-events-none absolute top-[calc(var(--shell-top)+0.5rem)] z-[9999] flex h-[calc(100dvh-var(--shell-top)-var(--shell-bottom)-0.5rem)] max-h-[calc(100dvh-var(--shell-top)-var(--shell-bottom)-0.5rem)] overflow-hidden";
 
-const panelWidthDefault = "w-full sm:w-[200px] md:w-[240px] lg:w-[320px]";
+/** 폭은 global.css --overlay-panel-width (태블릿 ≤1100px에서 덮어씀) */
+const panelWidthDefault = "w-[var(--overlay-panel-width)] max-w-full shrink-0";
 
-const panelWidthWide = "w-full sm:w-[200px] md:w-[240px] lg:w-[320px]";
+const panelWidthWide = "w-[var(--overlay-panel-width)] max-w-full shrink-0";
 
 const panelWidthExpanded =
   "inset-x-3 z-[2] w-auto sm:inset-x-4 lg:inset-x-[1.15rem]";
