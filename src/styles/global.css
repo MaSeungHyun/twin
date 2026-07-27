@@ -8,14 +8,14 @@
   --color-text: #eceff4;
   --color-muted: #8f98a8;
   --color-border: rgba(255, 255, 255, 0.14);
-  --color-panel: rgba(14, 18, 26, 0.42);
-  --color-panel-strong: rgba(14, 18, 26, 0.82);
+  --color-panel: rgba(14, 18, 26, 0.52);
+  --color-panel-strong: rgba(14, 18, 26, 0.72);
   --color-severity-critical: #e8797f;
   --color-severity-warning: #d4a84b;
   --color-severity-ok: #6bbf8a;
   --shell-top: 5.4rem;
   --shell-bottom: 5.25rem;
-  --panel-width: 22rem;
+  --panel-width: 20rem;
   --hud-radius: 1rem;
   --glass-blur: 28px;
   --font-display: 'IBM Plex Sans', sans-serif;
@@ -445,6 +445,7 @@ body {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.85rem 0.85rem 0.75rem 1rem;
+  background-color: var(--color-panel-strong);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
