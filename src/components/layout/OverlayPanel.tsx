@@ -24,9 +24,9 @@ const panelPointerHandlers = {
 const panelAsideBase =
   "pointer-events-none absolute top-[calc(var(--shell-top)+0.5rem)] z-[9999] flex h-[calc(100dvh-var(--shell-top)-var(--shell-bottom)-0.5rem)] max-h-[calc(100dvh-var(--shell-top)-var(--shell-bottom)-0.5rem)] overflow-hidden";
 
-const panelWidthDefault = "w-full sm:w-[200px] md:w-[280px] lg:w-[360px]";
+const panelWidthDefault = "w-full sm:w-[200px] md:w-[240px] lg:w-[320px]";
 
-const panelWidthWide = "w-full sm:w-[320px] md:w-[352px] lg:w-[400px]";
+const panelWidthWide = "w-full sm:w-[200px] md:w-[240px] lg:w-[320px]";
 
 const panelWidthExpanded =
   "inset-x-3 z-[2] w-auto sm:inset-x-4 lg:inset-x-[1.15rem]";

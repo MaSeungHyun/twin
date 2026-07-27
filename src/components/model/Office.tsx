@@ -23,6 +23,7 @@ import {
 import { collectOfficeCameras } from "@/three/officeCamera";
 import { collectOfficeFloorObjects } from "@/three/officeFloorVisibility";
 import { ensureOfficeFloorClones } from "@/three/officeFloorClones";
+import { buildOfficeFloorInstances } from "@/three/officeFloorInstancing";
 import { prepareOfficeScene } from "@/three/prepareOfficeScene";
 
 import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
@@ -43,7 +44,9 @@ function OfficeModel() {
   const scene = useMemo(() => {
     const instance = gltf.scene.clone(true);
     prepareOfficeScene(instance);
-    ensureOfficeFloorClones(instance);
+    if (!buildOfficeFloorInstances(instance)) {
+      ensureOfficeFloorClones(instance);
+    }
     return instance;
   }, [gltf.scene]);
 
@@ -75,11 +78,16 @@ function OfficeModel() {
   }, [scene, setViews]);
 
   useEffect(() => {
-    if (floorObjects.size === 0) return;
+    floorLayoutReadyRef.current = false;
+    floorLayoutRef.current = null;
+
+    if (floorObjects.size === 0) {
+      setAvailableFloorActions([]);
+      setActiveFloorAction(null);
+      return;
+    }
 
     const frameId = requestAnimationFrame(() => {
-      if (floorLayoutReadyRef.current && floorLayoutRef.current) return;
-
       disposeOfficeFloorLayout(floorLayoutRef.current);
 
       const layout = createOfficeFloorLayout(scene, floorObjects);

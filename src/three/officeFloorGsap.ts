@@ -6,11 +6,17 @@ import {
   type OfficeFloorActionId,
 } from "@/data/officeFloorActions";
 import type { OfficeFloorObjectKey } from "@/three/officeFloorVisibility";
+import {
+  floorVisibilityForAction,
+  getOfficeFloorInstanceRegistry,
+  syncOfficeFloorInstances,
+} from "@/three/officeFloorInstancing";
 
 /** 선택 층이 이동할 target Y (local) */
 export const OFFICE_FLOOR_TARGET_Y = 0;
 
 export type OfficeFloorLayout = {
+  root: Object3D;
   targetY: number;
   originals: Readonly<Record<OfficeFloorObjectKey, number>>;
   objects: ReadonlyMap<OfficeFloorObjectKey, Object3D>;
@@ -59,8 +65,23 @@ function killFloorTweens(objects: ReadonlyMap<OfficeFloorObjectKey, Object3D>) {
   }
 }
 
+function syncInstancesForFloors(
+  root: Object3D,
+  objects: ReadonlyMap<OfficeFloorObjectKey, Object3D>,
+  actionId: OfficeFloorActionId,
+) {
+  const registry = getOfficeFloorInstanceRegistry(root);
+  if (!registry) return;
+  syncOfficeFloorInstances(
+    registry,
+    objects,
+    floorVisibilityForAction(actionId),
+  );
+}
+
 /** 층별 — 선택 층만 visible / All — 전부 visible */
 export function applyOfficeFloorVisibility(
+  root: Object3D,
   objects: ReadonlyMap<OfficeFloorObjectKey, Object3D>,
   actionId: OfficeFloorActionId,
 ) {
@@ -68,12 +89,14 @@ export function applyOfficeFloorVisibility(
     for (const object of objects.values()) {
       object.visible = true;
     }
+    syncInstancesForFloors(root, objects, actionId);
     return;
   }
 
   for (const [key, object] of objects) {
     object.visible = key === actionId;
   }
+  syncInstancesForFloors(root, objects, actionId);
 }
 
 export function resetOfficeFloorPositions(layout: OfficeFloorLayout) {
@@ -82,6 +105,8 @@ export function resetOfficeFloorPositions(layout: OfficeFloorLayout) {
   for (const [key, object] of layout.objects) {
     object.position.y = layout.originals[key];
   }
+
+  syncInstancesForFloors(layout.root, layout.objects, "Default");
 }
 
 /**
@@ -107,9 +132,10 @@ export function createOfficeFloorLayout(
     object.position.y = originals[key];
   }
 
-  applyOfficeFloorVisibility(objects, "Default");
+  applyOfficeFloorVisibility(root, objects, "Default");
 
   return {
+    root,
     targetY: OFFICE_FLOOR_TARGET_Y,
     originals,
     objects,
@@ -138,17 +164,27 @@ export function animateOfficeFloorLayout(
 ): gsap.core.Timeline {
   layout.timeline?.kill();
 
+  const animating = actionId !== "Default";
+
   if (actionId === "Default") {
-    applyOfficeFloorVisibility(layout.objects, "Default");
+    applyOfficeFloorVisibility(layout.root, layout.objects, "Default");
   } else {
     for (const object of layout.objects.values()) {
       object.visible = true;
     }
+    syncInstancesForFloors(layout.root, layout.objects, "Default");
   }
 
   const timeline = gsap.timeline({
+    onUpdate: () => {
+      syncInstancesForFloors(
+        layout.root,
+        layout.objects,
+        animating ? "Default" : actionId,
+      );
+    },
     onComplete: () => {
-      applyOfficeFloorVisibility(layout.objects, actionId);
+      applyOfficeFloorVisibility(layout.root, layout.objects, actionId);
       onComplete?.();
     },
     defaults: { duration: FLOOR_ANIM_DURATION, ease: FLOOR_ANIM_EASE },
