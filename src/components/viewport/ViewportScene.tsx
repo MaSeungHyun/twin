@@ -8,7 +8,7 @@ import FollowShadowLight from "./FollowShadowLight";
 import LoadProgressSync from "./LoadProgressSync";
 import OfficeCameraFlyer from "./OfficeCameraFlyer";
 import SceneShadowSync from "./SceneShadowSync";
-import { Sky, StatsGl } from "@react-three/drei";
+import { StatsGl } from "@react-three/drei";
 import Office from "../model/Office";
 
 export default function ViewportScene() {
