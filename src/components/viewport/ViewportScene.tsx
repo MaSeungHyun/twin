@@ -1,7 +1,6 @@
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { StatsGl } from "@react-three/drei";
 
-import { isMobileDevice } from "@/lib/device";
 import { useViewportTestStore } from "@/stores/viewportTestStore";
 import Office from "../model/Office";
 import Canvas from "./Canvas";
