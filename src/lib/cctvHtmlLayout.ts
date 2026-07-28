@@ -33,10 +33,13 @@ type MarkerEntry = MarkerLayoutUpdate & {
 const registry = new Map<string, MarkerEntry>();
 
 const PADDING = 20;
-const CLUSTER_RADIUS = 220;
-const SMOOTHING = 0.2;
-const RETURN_SMOOTHING = 0.1;
-const DIRECTIONAL_BIAS_PX = 72;
+const CLUSTER_RADIUS = 260;
+const SMOOTHING = 0.28;
+const RETURN_SMOOTHING = 0.12;
+const DIRECTIONAL_BIAS_PX = 48;
+/** 마커 간 최소 간격 (겹침 방지) */
+const OVERLAP_GAP = 16;
+const DEOVERLAP_ITERS = 10;
 
 /** clamp과 맞춘 가장자리 여백 */
 const EDGE_PADDING = 16;
@@ -117,8 +120,8 @@ function findClusters(entries: MarkerEntry[]): MarkerEntry[][] {
 }
 
 /**
- * 클러스터 슬롯: 기본은 좌우 한 줄.
- * 가용 폭이 부족하면 위아래 한 줄로 전환.
+ * 클러스터 슬롯: 좌우를 우선으로 채우고, 가용 폭이 부족하면 다음 행으로 감쌈.
+ * (한 칸만 들어갈 때만 순수 세로 한 줄)
  */
 function computeClusterSlotTargets(
   cluster: MarkerEntry[],
@@ -145,21 +148,54 @@ function computeClusterSlotTargets(
 
   const bounds = getUsableBounds(viewport);
   const availW = Math.max(0, bounds.maxX - bounds.minX);
-  const needW = (n - 1) * stepX + maxW;
-  const useVertical = needW > availW;
+  const availH = Math.max(0, bounds.maxY - bounds.minY);
+
+  // 한 행에 들어갈 수 있는 최대 개수 (좌우 우선)
+  const cols = Math.max(
+    1,
+    Math.min(n, Math.floor((availW - maxW) / stepX) + 1),
+  );
+  const rows = Math.ceil(n / cols);
+
+  // 그리드가 가용 영역 안에 오도록 중심 보정
+  const gridW = (cols - 1) * stepX + maxW;
+  const gridH = (rows - 1) * stepY + maxH;
+  const halfGW = gridW / 2;
+  const halfGH = gridH / 2;
+  if (bounds.maxX - bounds.minX >= gridW) {
+    centroidX = Math.min(
+      Math.max(centroidX, bounds.minX + halfGW),
+      bounds.maxX - halfGW,
+    );
+  } else {
+    centroidX = (bounds.minX + bounds.maxX) / 2;
+  }
+  if (bounds.maxY - bounds.minY >= gridH) {
+    centroidY = Math.min(
+      Math.max(centroidY, bounds.minY + halfGH),
+      bounds.maxY - halfGH,
+    );
+  } else if (availH > 0) {
+    centroidY = (bounds.minY + bounds.maxY) / 2;
+  }
 
   const sorted = [...cluster].sort(
-    useVertical ? compareByScreenY : compareByScreenX,
+    cols === 1 ? compareByScreenY : compareByScreenX,
   );
 
   for (let i = 0; i < n; i++) {
     const entry = sorted[i];
     const base = baseCenter(entry);
-    const slot = (i - (n - 1) / 2) * (useVertical ? stepY : stepX);
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    const rowLen = Math.min(cols, n - row * cols);
+    // 마지막 행이 짧으면 그 행만 가운데 정렬
+    const slotX = (col - (rowLen - 1) / 2) * stepX;
+    const slotY = (row - (rows - 1) / 2) * stepY;
 
     targets.set(entry.id, {
-      x: useVertical ? centroidX - base.x : centroidX + slot - base.x,
-      y: useVertical ? centroidY + slot - base.y : centroidY - base.y,
+      x: centroidX + slotX - base.x,
+      y: centroidY + slotY - base.y,
     });
   }
 
@@ -177,6 +213,107 @@ function computeDirectionalBias(entry: MarkerEntry, viewport: ViewportSize) {
     x: t * DIRECTIONAL_BIAS_PX,
     y: 0,
   };
+}
+
+function entryScale(entry: MarkerEntry) {
+  return entry.root?.dataset.hovered === "1" ? 1.5 : 1;
+}
+
+/**
+ * 모든 마커 타깃 위치를 AABB 기준으로 밀어 겹침을 줄임.
+ * 침투가 비슷하면 좌우 분리를 우선.
+ */
+function adjustTargetsToAvoidOverlap(
+  entries: MarkerEntry[],
+  targets: Map<string, { x: number; y: number }>,
+  viewport: ViewportSize,
+) {
+  type Pos = {
+    entry: MarkerEntry;
+    x: number;
+    y: number;
+    halfW: number;
+    halfH: number;
+  };
+
+  const positions: Pos[] = entries.map((entry) => {
+    const base = baseCenter(entry);
+    const t = targets.get(entry.id) ?? { x: 0, y: 0 };
+    const scale = entryScale(entry);
+    return {
+      entry,
+      x: base.x + t.x,
+      y: base.y + t.y,
+      halfW: (entry.width * scale) / 2,
+      halfH: (entry.height * scale) / 2,
+    };
+  });
+
+  for (let iter = 0; iter < DEOVERLAP_ITERS; iter++) {
+    let moved = false;
+
+    for (let i = 0; i < positions.length; i++) {
+      for (let j = i + 1; j < positions.length; j++) {
+        const a = positions[i];
+        const b = positions[j];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const minDx = a.halfW + b.halfW + OVERLAP_GAP;
+        const minDy = a.halfH + b.halfH + OVERLAP_GAP;
+        const overlapX = minDx - Math.abs(dx);
+        const overlapY = minDy - Math.abs(dy);
+        if (overlapX <= 0 || overlapY <= 0) continue;
+
+        // 침투가 작거나 비슷한 축 — 좌우 우선
+        const preferX = overlapX < overlapY * 1.15;
+        if (preferX) {
+          const push = overlapX / 2 + 0.5;
+          const sign =
+            Math.abs(dx) < 0.1
+              ? a.entry.id < b.entry.id
+                ? -1
+                : 1
+              : Math.sign(dx);
+          a.x -= sign * push;
+          b.x += sign * push;
+        } else {
+          const push = overlapY / 2 + 0.5;
+          const sign =
+            Math.abs(dy) < 0.1
+              ? a.entry.id < b.entry.id
+                ? -1
+                : 1
+              : Math.sign(dy);
+          a.y -= sign * push;
+          b.y += sign * push;
+        }
+        moved = true;
+      }
+    }
+
+    // 가용 영역 안으로 클램프
+    for (const pos of positions) {
+      const clamped = clampPanelToViewport(
+        pos.x,
+        pos.y,
+        pos.halfW * 2,
+        pos.halfH * 2,
+        viewport,
+      );
+      pos.x += clamped.offsetX;
+      pos.y += clamped.offsetY;
+    }
+
+    if (!moved) break;
+  }
+
+  for (const pos of positions) {
+    const base = baseCenter(pos.entry);
+    targets.set(pos.entry.id, {
+      x: pos.x - base.x,
+      y: pos.y - base.y,
+    });
+  }
 }
 
 function computeTargetSeparations(
@@ -205,6 +342,7 @@ function computeTargetSeparations(
     target.set(entry.id, computeDirectionalBias(entry, viewport));
   }
 
+  adjustTargetsToAvoidOverlap(entries, target, viewport);
   return target;
 }
 
