@@ -35,7 +35,7 @@ export default function ViewportScene() {
       <OfficeCameraFlyer />
       <Office />
 
-      <EffectComposer multisampling={markersActive ? 0 : 1}>
+      <EffectComposer multisampling={4}>
         <Bloom
           intensity={markersActive ? 1.1 : 1.5}
           threshold={1}
