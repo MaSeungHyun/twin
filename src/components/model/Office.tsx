@@ -8,6 +8,8 @@ import {
   getCctvVideoTitleByIndex,
 } from "@/data/officeCameraVideos";
 import { useInitialLoadStore } from "@/stores/initialLoadStore";
+import { useCctvCameraStatusStore } from "@/stores/cctvCameraStatusStore";
+import { useCctvOverlayStore } from "@/stores/cctvOverlayStore";
 import { useOfficeCameraStore } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
 import { collectCctvMarkers } from "@/three/cctvMarkers";
@@ -32,10 +34,9 @@ import {
 } from "@/three/officeFloorInstancing";
 import { prepareOfficeScene } from "@/three/prepareOfficeScene";
 
-import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
-import CameraWithVideo from "./CameraWithVideo";
+import CctvAnchorBinder from "../viewport/CctvAnchorBinder";
+import CctvProjectionSync from "../viewport/CctvProjectionSync";
 import CctvFloorHeatmap from "./CctvFloorHeatmap";
-import { useCctvCameraStatusStore } from "@/stores/cctvCameraStatusStore";
 
 function OfficeModel() {
   const group = useRef<Group>(null);
@@ -65,6 +66,8 @@ function OfficeModel() {
   );
   const setViews = useOfficeCameraStore((s) => s.setViews);
   const setModelProgress = useInitialLoadStore((s) => s.setModelProgress);
+  const setOverlayMarkers = useCctvOverlayStore((s) => s.setMarkers);
+  const clearOverlayMarkers = useCctvOverlayStore((s) => s.clearMarkers);
 
   const cctvMarkers = useMemo(() => collectCctvMarkers(scene), [scene]);
 
@@ -73,6 +76,19 @@ function OfficeModel() {
       .getState()
       .registerCameras(cctvMarkers.map((m) => m.name));
   }, [cctvMarkers]);
+
+  useEffect(() => {
+    setOverlayMarkers(
+      cctvMarkers.map((marker, index) => ({
+        id: marker.id,
+        markerName: marker.name,
+        floor: marker.floor,
+        videoTitle: getCctvVideoTitleByIndex(index),
+        videoSrc: getCctvVideoByIndex(index),
+      })),
+    );
+    return () => clearOverlayMarkers();
+  }, [cctvMarkers, clearOverlayMarkers, setOverlayMarkers]);
 
   const floorObjects = useMemo(
     () => collectOfficeFloorObjects(scene),
@@ -118,7 +134,6 @@ function OfficeModel() {
     return () => {
       disposeOfficeFloorLayout(floorLayoutRef.current);
       floorLayoutRef.current = null;
-      /** geometry/material은 GLTF 캐시 공유 — InstancedMesh 버퍼만 해제 */
       disposeOfficeFloorInstances(scene);
       scene.removeFromParent();
     };
@@ -141,21 +156,18 @@ function OfficeModel() {
 
   return (
     <group ref={group}>
-      <CctvHtmlLayoutSync />
+      <CctvProjectionSync />
       <primitive object={scene} />
       <CctvFloorHeatmap
         sceneRoot={scene}
         markers={cctvMarkers}
         floorObjects={floorObjects}
       />
-      {cctvMarkers.map((marker, index) => (
-        <CameraWithVideo
+      {cctvMarkers.map((marker) => (
+        <CctvAnchorBinder
           key={marker.id}
+          id={marker.id}
           anchor={marker.node}
-          floor={marker.floor}
-          markerName={marker.name}
-          videoTitle={getCctvVideoTitleByIndex(index)}
-          videoSrc={getCctvVideoByIndex(index)}
         />
       ))}
     </group>

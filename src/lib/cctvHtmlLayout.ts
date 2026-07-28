@@ -13,11 +13,14 @@ export type MarkerLayoutUpdate = {
   base: PanelClampResult;
   clamped: boolean;
   active: boolean;
+  /** 오버레이 루트 (스크린 앵커 위치) */
+  root: HTMLDivElement | null;
   panel: HTMLDivElement | null;
   line: SVGLineElement | null;
   lineStartX: number;
   lineStartY: number;
   showLine: boolean;
+  zIndex: number;
 };
 
 type MarkerEntry = MarkerLayoutUpdate & {
@@ -29,11 +32,9 @@ type MarkerEntry = MarkerLayoutUpdate & {
 const registry = new Map<string, MarkerEntry>();
 
 const PADDING = 20;
-/** base 중심이 이 거리(px) 안이면 같은 클러스터 → 좌우 슬롯 배치 */
 const CLUSTER_RADIUS = 220;
 const SMOOTHING = 0.2;
 const RETURN_SMOOTHING = 0.1;
-/** 화면 좌/우에 있는 단독 마커 — 패널을 같은 쪽으로 밀어 선 교차 완화 */
 const DIRECTIONAL_BIAS_PX = 72;
 
 function compareByScreenX(a: MarkerEntry, b: MarkerEntry) {
@@ -49,8 +50,6 @@ function baseCenter(entry: MarkerEntry) {
     y: entry.anchorY + entry.base.offsetY,
   };
 }
-
-// ─── Step 1: 가까운 마커끼리 클러스터 묶기 ───
 
 function findClusters(entries: MarkerEntry[]): MarkerEntry[][] {
   const sorted = [...entries].sort((a, b) => a.id.localeCompare(b.id));
@@ -96,8 +95,6 @@ function findClusters(entries: MarkerEntry[]): MarkerEntry[][] {
   return [...groups.values()];
 }
 
-// ─── Step 2: 클러스터 내 좌우 슬롯 배치 (화면 X 좌표 순) ───
-
 function computeHorizontalSlotTargets(cluster: MarkerEntry[]) {
   const targets = new Map<string, { x: number; y: number }>();
   if (cluster.length < 2) return targets;
@@ -131,7 +128,6 @@ function computeHorizontalSlotTargets(cluster: MarkerEntry[]) {
   return targets;
 }
 
-/** 단독 마커 — 앵커가 왼쪽이면 패널도 왼쪽, 오른쪽이면 오른쪽 */
 function computeDirectionalBias(entry: MarkerEntry, viewport: ViewportSize) {
   const base = baseCenter(entry);
   const cx = viewport.width / 2;
@@ -144,8 +140,6 @@ function computeDirectionalBias(entry: MarkerEntry, viewport: ViewportSize) {
     y: 0,
   };
 }
-
-// ─── Step 3: 전체 target sep (클러스터 슬롯 · 단독 방향 bias) ───
 
 function computeTargetSeparations(
   entries: MarkerEntry[],
@@ -176,8 +170,6 @@ function computeTargetSeparations(
   return target;
 }
 
-// ─── Step 4: 부드럽게 보간 ───
-
 function smoothTowardTarget(
   current: number,
   target: number,
@@ -190,8 +182,6 @@ function smoothTowardTarget(
 
   return current + delta * alpha;
 }
-
-// ─── Step 5: viewport clamp ───
 
 function clampSepToViewport(entry: MarkerEntry, viewport: ViewportSize) {
   const base = baseCenter(entry);
@@ -207,16 +197,20 @@ function clampSepToViewport(entry: MarkerEntry, viewport: ViewportSize) {
   entry.sepY += clamped.offsetY;
 }
 
-// ─── Step 6: DOM 반영 ───
-
 function applyMarkerTransform(entry: MarkerEntry) {
+  if (entry.root) {
+    entry.root.style.transform = `translate(${entry.anchorX}px, ${entry.anchorY}px) translate(-50%, -50%)`;
+    entry.root.style.zIndex = String(entry.zIndex);
+  }
+
+  if (!entry.panel) return;
+
   const offsetX = entry.base.offsetX + entry.sepX;
   const offsetY = entry.base.offsetY + entry.sepY;
-  const moved =
-    Math.abs(entry.sepX) > 0.5 || Math.abs(entry.sepY) > 0.5;
+  const moved = Math.abs(entry.sepX) > 0.5 || Math.abs(entry.sepY) > 0.5;
   const showLine = entry.showLine || entry.clamped || moved;
 
-  entry.panel!.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+  entry.panel.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
 
   if (!entry.line) return;
 
@@ -239,11 +233,13 @@ export function registerCctvHtmlMarker(id: string) {
     base: { offsetX: 0, offsetY: 0, clamped: false },
     clamped: false,
     active: false,
+    root: null,
     panel: null,
     line: null,
     lineStartX: 0,
     lineStartY: 0,
     showLine: false,
+    zIndex: 0,
     sepX: 0,
     sepY: 0,
   });
@@ -253,28 +249,47 @@ export function unregisterCctvHtmlMarker(id: string) {
   registry.delete(id);
 }
 
-export function updateCctvHtmlMarker(id: string, update: MarkerLayoutUpdate) {
+export function updateCctvHtmlMarker(id: string, update: Partial<MarkerLayoutUpdate>) {
   const entry = registry.get(id);
   if (!entry) return;
   Object.assign(entry, update);
 }
 
 /**
- * CCTV Html layout:
+ * CCTV 오버레이 layout:
  * 1. active 마커 수집
- * 2. 가까운 마커 클러스터링
- * 3. 클러스터 내 화면 X 순 좌·우 슬롯 target 계산
- * 4. sep 보간 → viewport clamp → DOM 적용
+ * 2. viewport clamp(base) 재계산
+ * 3. 클러스터링 → 슬롯/바이어스
+ * 4. sep 보간 → clamp → DOM
  */
 export function resolveCctvHtmlMarkerLayout(viewport: ViewportSize) {
   const entries = [...registry.values()]
     .filter(
       (entry) =>
-        entry.active && entry.panel && entry.width > 0 && entry.height > 0,
+        entry.active &&
+        entry.root &&
+        entry.panel &&
+        entry.width > 0 &&
+        entry.height > 0,
     )
     .sort((a, b) => a.id.localeCompare(b.id));
 
   if (entries.length === 0) return;
+
+  for (const entry of entries) {
+    const scale = entry.root?.dataset.hovered === "1" ? 1.5 : 1;
+    const w = entry.width * scale;
+    const h = entry.height * scale;
+    const base = clampPanelToViewport(
+      entry.anchorX,
+      entry.anchorY,
+      w,
+      h,
+      viewport,
+    );
+    entry.base = base;
+    entry.clamped = base.clamped;
+  }
 
   const targets = computeTargetSeparations(entries, viewport);
   const spreading = [...targets.values()].some(

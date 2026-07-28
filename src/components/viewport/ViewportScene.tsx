@@ -7,20 +7,18 @@ import Canvas from "./Canvas";
 import CompassController from "./CompassController";
 import Controls from "./Controls";
 import FollowShadowLight from "./FollowShadowLight";
+import FrameloopPauseOnPopup from "./FrameloopPauseOnPopup";
 import LoadProgressSync from "./LoadProgressSync";
 import OfficeCameraFlyer from "./OfficeCameraFlyer";
 import SceneShadowSync from "./SceneShadowSync";
-
-const IS_DEV = import.meta.env.DEV;
 
 export default function ViewportScene() {
   const antialiasEnabled = useViewportTestStore((s) => s.antialiasEnabled);
   const gpuPowerPreference = useViewportTestStore((s) => s.gpuPowerPreference);
 
-  /** Bloom/EffectComposer는 모바일·태블릿에서 VRAM·fill-rate 부담이 큼 */
-
   return (
     <Canvas antialias={antialiasEnabled} powerPreference={gpuPowerPreference}>
+      <FrameloopPauseOnPopup />
       <SceneShadowSync />
       <FollowShadowLight />
       <Controls />
@@ -38,9 +36,12 @@ export default function ViewportScene() {
         />
       </EffectComposer>
 
-      {IS_DEV ? (
-        <StatsGl className="pointer-events-none absolute top-18 right-4 z-2" />
-      ) : null}
+      {/* {import.meta.env.DEV ? ( */}
+      <StatsGl
+        className="pointer-events-none absolute top-18 right-4 z-2"
+        trackGPU
+      />
+      {/* ) : null} */}
     </Canvas>
   );
 }

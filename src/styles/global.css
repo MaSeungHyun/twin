@@ -87,9 +87,11 @@ body {
   position: absolute;
   width: 100vw;
   height: 100vh;
-  height: 100dvh;
+  height: 100lvh;
   /* background: var(--color-bg); */
   overflow: hidden;
+  z-index: 9000;
+  pointer-events: none;;
 }
 
 .app-shell__viewport {
