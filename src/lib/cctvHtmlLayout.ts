@@ -2,6 +2,7 @@ import {
   clampPanelToViewport,
   type PanelClampResult,
 } from "@/lib/cctvLeaderLine";
+import { getHudViewportInsets } from "@/lib/hudViewportInsets";
 
 type ViewportSize = { width: number; height: number };
 
@@ -37,6 +38,9 @@ const SMOOTHING = 0.2;
 const RETURN_SMOOTHING = 0.1;
 const DIRECTIONAL_BIAS_PX = 72;
 
+/** clamp과 맞춘 가장자리 여백 */
+const EDGE_PADDING = 16;
+
 function compareByScreenX(a: MarkerEntry, b: MarkerEntry) {
   const ax = baseCenter(a).x;
   const bx = baseCenter(b).x;
@@ -44,10 +48,27 @@ function compareByScreenX(a: MarkerEntry, b: MarkerEntry) {
   return a.id.localeCompare(b.id);
 }
 
+function compareByScreenY(a: MarkerEntry, b: MarkerEntry) {
+  const ay = baseCenter(a).y;
+  const by = baseCenter(b).y;
+  if (Math.abs(ay - by) > 1) return ay - by;
+  return a.id.localeCompare(b.id);
+}
+
 function baseCenter(entry: MarkerEntry) {
   return {
     x: entry.anchorX + entry.base.offsetX,
     y: entry.anchorY + entry.base.offsetY,
+  };
+}
+
+function getUsableBounds(viewport: ViewportSize) {
+  const insets = getHudViewportInsets();
+  return {
+    minX: insets.left + EDGE_PADDING,
+    maxX: viewport.width - insets.right - EDGE_PADDING,
+    minY: insets.top + EDGE_PADDING,
+    maxY: viewport.height - insets.bottom - EDGE_PADDING,
   };
 }
 
@@ -95,18 +116,26 @@ function findClusters(entries: MarkerEntry[]): MarkerEntry[][] {
   return [...groups.values()];
 }
 
-function computeHorizontalSlotTargets(cluster: MarkerEntry[]) {
+/**
+ * 클러스터 슬롯: 기본은 좌우 한 줄.
+ * 가용 폭이 부족하면 위아래 한 줄로 전환.
+ */
+function computeClusterSlotTargets(
+  cluster: MarkerEntry[],
+  viewport: ViewportSize,
+) {
   const targets = new Map<string, { x: number; y: number }>();
   if (cluster.length < 2) return targets;
 
-  const sorted = [...cluster].sort(compareByScreenX);
-  const n = sorted.length;
-  const maxW = Math.max(...sorted.map((entry) => entry.width));
-  const step = maxW + PADDING;
+  const n = cluster.length;
+  const maxW = Math.max(...cluster.map((entry) => entry.width));
+  const maxH = Math.max(...cluster.map((entry) => entry.height));
+  const stepX = maxW + PADDING;
+  const stepY = maxH + PADDING;
 
   let centroidX = 0;
   let centroidY = 0;
-  for (const entry of sorted) {
+  for (const entry of cluster) {
     const base = baseCenter(entry);
     centroidX += base.x;
     centroidY += base.y;
@@ -114,14 +143,23 @@ function computeHorizontalSlotTargets(cluster: MarkerEntry[]) {
   centroidX /= n;
   centroidY /= n;
 
+  const bounds = getUsableBounds(viewport);
+  const availW = Math.max(0, bounds.maxX - bounds.minX);
+  const needW = (n - 1) * stepX + maxW;
+  const useVertical = needW > availW;
+
+  const sorted = [...cluster].sort(
+    useVertical ? compareByScreenY : compareByScreenX,
+  );
+
   for (let i = 0; i < n; i++) {
     const entry = sorted[i];
     const base = baseCenter(entry);
-    const slotX = (i - (n - 1) / 2) * step;
+    const slot = (i - (n - 1) / 2) * (useVertical ? stepY : stepX);
 
     targets.set(entry.id, {
-      x: centroidX + slotX - base.x,
-      y: centroidY - base.y,
+      x: useVertical ? centroidX - base.x : centroidX + slot - base.x,
+      y: useVertical ? centroidY + slot - base.y : centroidY - base.y,
     });
   }
 
@@ -155,7 +193,7 @@ function computeTargetSeparations(
   for (const cluster of findClusters(entries)) {
     if (cluster.length < 2) continue;
 
-    const slots = computeHorizontalSlotTargets(cluster);
+    const slots = computeClusterSlotTargets(cluster, viewport);
     for (const [id, sep] of slots) {
       target.set(id, sep);
       slottedIds.add(id);
