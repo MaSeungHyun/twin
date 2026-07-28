@@ -65,7 +65,7 @@ export function HeaderBar() {
         ))}
       </nav>
 
-      <div className="hud-island hud-island--meta" aria-label="데이터 상태">
+      {/* <div className="hud-island hud-island--meta" aria-label="데이터 상태">
         <span className={cn("hud-badge", tagoBadge.className)}>
           {tagoBadge.label}
         </span>
@@ -76,7 +76,7 @@ export function HeaderBar() {
           {videoQuality}
         </span>
         <span className="hud-badge hud-badge--muted">Mock · CCTV</span>
-      </div>
+      </div> */}
     </header>
   );
 }
