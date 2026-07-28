@@ -11,8 +11,8 @@
   --color-text: #eceff4;
   --color-muted: #8f98a8;
   --color-border: rgba(255, 255, 255, 0.14);
-  --color-panel: rgba(14, 18, 26, 0.42);
-  --color-panel-strong: rgba(14, 18, 26, 0.52);
+  --color-panel: rgba(14, 18, 26, 0.82);
+  --color-panel-strong: rgba(14, 18, 26, 0.82);
   --color-severity-critical: #e8797f;
   --color-severity-warning: #d4a84b;
   --color-severity-ok: #6bbf8a;
@@ -20,7 +20,8 @@
   --shell-bottom: 5.25rem;
   --panel-width: 15.4rem;
   --hud-radius: 1rem;
-  --glass-blur: 28px;
+  --glass-blur: 50;
+  
   --font-display: 'IBM Plex Sans', sans-serif;
   --font-ui: 'IBM Plex Sans', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -1491,6 +1492,7 @@ body {
 
   .overlay-panel--open {
     width: min(14.35rem, calc(100vw - 1.5rem));
+    
   }
 
   .overlay-panel--open.overlay-panel--wide {

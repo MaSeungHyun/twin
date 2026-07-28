@@ -219,10 +219,11 @@ function applyMarkerTransform(entry: MarkerEntry) {
 
   if (!entry.line) return;
 
-  entry.line.setAttribute("x1", String(entry.lineStartX));
-  entry.line.setAttribute("y1", String(entry.lineStartY));
-  entry.line.setAttribute("x2", String(offsetX));
-  entry.line.setAttribute("y2", String(offsetY));
+  // 선은 뷰포트 공통 SVG(마커 아래 레이어) — 절대 좌표
+  entry.line.setAttribute("x1", String(entry.anchorX + entry.lineStartX));
+  entry.line.setAttribute("y1", String(entry.anchorY + entry.lineStartY));
+  entry.line.setAttribute("x2", String(entry.anchorX + offsetX));
+  entry.line.setAttribute("y2", String(entry.anchorY + offsetY));
   entry.line.style.opacity = showLine ? "1" : "0";
 }
 
@@ -258,6 +259,9 @@ export function updateCctvHtmlMarker(id: string, update: Partial<MarkerLayoutUpd
   const entry = registry.get(id);
   if (!entry) return;
   Object.assign(entry, update);
+  if (update.active === false && entry.line) {
+    entry.line.style.opacity = "0";
+  }
 }
 
 /**

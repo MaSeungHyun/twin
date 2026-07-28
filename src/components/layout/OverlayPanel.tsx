@@ -46,6 +46,9 @@ export function OverlayPanel({
         expanded && "overlay-panel--expanded",
       )}
       aria-label={title}
+      style={{
+        backdropFilter: "blur(50px)",
+      }}
     >
       <div className="overlay-panel__glass" {...panelPointerHandlers}>
         <header className="overlay-panel__header">
