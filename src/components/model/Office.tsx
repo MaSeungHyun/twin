@@ -39,6 +39,7 @@ import { prepareOfficeScene } from "@/three/prepareOfficeScene";
 import CctvAnchorBinder from "../viewport/CctvAnchorBinder";
 import CctvProjectionSync from "../viewport/CctvProjectionSync";
 import CctvFloorHeatmap from "./CctvFloorHeatmap";
+import { useFrame, useThree } from "@react-three/fiber";
 
 function OfficeModel() {
   const group = useRef<Group>(null);
@@ -94,10 +95,7 @@ function OfficeModel() {
     return () => clearOverlayMarkers();
   }, [cctvMarkers, clearOverlayMarkers, setOverlayMarkers]);
 
-  const floorObjects = useMemo(
-    () => collectOfficeFloorObjects(scene),
-    [scene],
-  );
+  const floorObjects = useMemo(() => collectOfficeFloorObjects(scene), [scene]);
 
   useEffect(() => {
     setModelProgress(100);
@@ -127,12 +125,7 @@ function OfficeModel() {
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [
-    floorObjects,
-    scene,
-    setActiveFloorAction,
-    setAvailableFloorActions,
-  ]);
+  }, [floorObjects, scene, setActiveFloorAction, setAvailableFloorActions]);
 
   useEffect(() => {
     return () => {
@@ -168,17 +161,19 @@ function OfficeModel() {
         floorObjects={floorObjects}
       />
       {cctvMarkers.map((marker) => (
-        <CctvAnchorBinder
-          key={marker.id}
-          id={marker.id}
-          anchor={marker.node}
-        />
+        <CctvAnchorBinder key={marker.id} id={marker.id} anchor={marker.node} />
       ))}
     </group>
   );
 }
 
 export default function Office() {
+  const camera = useThree((s) => s.camera);
+
+  useFrame(() => {
+    console.log(camera.position);
+    console.log(camera.quaternion);
+  });
   return (
     <Suspense fallback={null}>
       <OfficeModel />
