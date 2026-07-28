@@ -10,7 +10,7 @@ export type PanelClampResult = {
 
 const DEFAULT_PADDING = 16;
 
-/** 패널 중심을 viewport 안으로 클램프 (Header/BottomDock 여백 반영) */
+/** 패널 중심을 viewport 안으로 클램프 (Header/BottomDock/좌우 패널 여백 반영) */
 export function clampPanelToViewport(
   anchorX: number,
   anchorY: number,
@@ -23,14 +23,14 @@ export function clampPanelToViewport(
   const halfW = panelWidth / 2;
   const halfH = panelHeight / 2;
 
-  const minX = padding + halfW;
-  const maxX = viewport.width - padding - halfW;
+  const minX = hudInsets.left + padding + halfW;
+  const maxX = viewport.width - hudInsets.right - padding - halfW;
   const minY = hudInsets.top + padding + halfH;
   const maxY = viewport.height - hudInsets.bottom - padding - halfH;
 
   const clampedX =
     minX > maxX
-      ? viewport.width / 2
+      ? (minX + maxX) / 2
       : Math.min(Math.max(anchorX, minX), maxX);
   const clampedY =
     minY > maxY
@@ -58,7 +58,7 @@ function clampRayToViewportEdge(
   cy: number,
   viewport: ViewportSize,
   padding: number,
-  hudInsets: { top: number; bottom: number },
+  hudInsets: { top: number; bottom: number; left: number; right: number },
 ): { x: number; y: number } {
   const dx = x - cx;
   const dy = y - cy;
@@ -67,8 +67,8 @@ function clampRayToViewportEdge(
     return { x: cx, y: cy };
   }
 
-  const minX = padding;
-  const maxX = viewport.width - padding;
+  const minX = hudInsets.left + padding;
+  const maxX = viewport.width - hudInsets.right - padding;
   const minY = hudInsets.top + padding;
   const maxY = viewport.height - hudInsets.bottom - padding;
 

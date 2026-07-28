@@ -109,6 +109,8 @@ body {
   -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
+
+
 .hud-island--brand {
   justify-self: start;
   flex-shrink: 0;
@@ -225,6 +227,12 @@ body {
   color: var(--color-severity-ok);
   border-color: rgba(107, 191, 138, 0.28);
   background: rgba(107, 191, 138, 0.08);
+}
+
+.hud-badge--resolution {
+  color: var(--color-accent);
+  border-color: rgba(122, 162, 255, 0.48);
+  background: rgba(122, 162, 255, 0.08);
 }
 
 .hud-badge--muted {
