@@ -209,6 +209,11 @@ function applyMarkerTransform(entry: MarkerEntry) {
   const offsetY = entry.base.offsetY + entry.sepY;
   const moved = Math.abs(entry.sepX) > 0.5 || Math.abs(entry.sepY) > 0.5;
   const showLine = entry.showLine || entry.clamped || moved;
+  const hovered = entry.root?.dataset.hovered === "1";
+
+  if (entry.root) {
+    entry.root.style.willChange = moved || hovered ? "transform" : "auto";
+  }
 
   entry.panel.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
 

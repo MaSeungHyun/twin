@@ -48,6 +48,7 @@ type DiscEntry = {
   stamp: HeatmapStamp;
   mesh: Mesh;
   material: MeshStandardMaterial;
+  lastSeverity: CctvAlarmSeverity | "safe" | null;
 };
 
 type FloorEntry = {
@@ -79,7 +80,7 @@ function createDisc(stamp: HeatmapStamp, y: number, geometry: PlaneGeometry) {
   mesh.frustumCulled = false;
   mesh.visible = false;
 
-  return { mesh, material, stamp };
+  return { mesh, material, stamp, lastSeverity: null as DiscEntry["lastSeverity"] };
 }
 
 /**
@@ -152,9 +153,9 @@ export default function CctvFloorHeatmap({
       const discs: DiscEntry[] = [];
 
       for (const stamp of stamps) {
-        const { mesh, material } = createDisc(stamp, floorTopY, geometry);
-        holder.add(mesh);
-        discs.push({ stamp, mesh, material });
+        const disc = createDisc(stamp, floorTopY, geometry);
+        holder.add(disc.mesh);
+        discs.push(disc);
       }
 
       parent.add(holder);
@@ -193,15 +194,23 @@ export default function CctvFloorHeatmap({
       holder.visible = floorShow;
       if (!floorShow) continue;
 
-      for (const { stamp, mesh, material } of discs) {
+      for (const disc of discs) {
+        const { stamp, mesh, material } = disc;
         const status = getCctvCameraStatus(stamp.cameraName);
         if (!isCctvAlarmSeverity(status)) {
-          mesh.visible = false;
+          if (disc.lastSeverity !== "safe") {
+            mesh.visible = false;
+            disc.lastSeverity = "safe";
+          }
           continue;
         }
 
-        mesh.visible = true;
-        material.emissive.setHex(HEATMAP_EMISSIVE_HEX[status]);
+        if (disc.lastSeverity !== status) {
+          mesh.visible = true;
+          material.emissive.setHex(HEATMAP_EMISSIVE_HEX[status]);
+          disc.lastSeverity = status;
+        }
+
         const speed = PULSE_SPEED[status];
         const peak = EMISSIVE_PEAK[status];
         const wave = 0.5 + 0.5 * Math.sin(t * speed + stamp.phase);

@@ -170,7 +170,7 @@ function CctvOverlayMarker({
   return (
     <div
       ref={rootRef}
-      className="cctv-overlay-marker pointer-events-auto absolute top-0 left-0 will-change-transform "
+      className="cctv-overlay-marker pointer-events-auto absolute top-0 left-0"
       style={{ transform: "translate(-9999px, -9999px)" }}
     >
       <div className="relative">
@@ -218,6 +218,8 @@ function CctvOverlayMarker({
             onPointerEnter={() => {
               setIsPointerOver(true);
               setHoveredId(id);
+              // 팝업용 고화질 미리 풀에 올려 두기
+              acquireCctvVideo(videoSrcFull);
             }}
             onPointerLeave={(event) => {
               const related = event.relatedTarget;
