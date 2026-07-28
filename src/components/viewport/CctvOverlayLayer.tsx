@@ -13,6 +13,7 @@ import {
   cctvAlarmBadgeClass,
   cctvAlarmLabel,
   cctvAlarmRingClass,
+  cctvLeaderLineStroke,
   isCctvAlarmSeverity,
 } from "@/lib/cctvAlarm";
 import {
@@ -102,7 +103,7 @@ function CctvOverlayMarker({
       "http://www.w3.org/2000/svg",
       "line",
     );
-    line.setAttribute("stroke", "rgba(77, 163, 255, 0.9)");
+    line.setAttribute("stroke", cctvLeaderLineStroke("safe"));
     line.setAttribute("stroke-width", "1.5");
     line.setAttribute("stroke-linecap", "round");
     line.style.opacity = "0";
@@ -135,6 +136,10 @@ function CctvOverlayMarker({
       });
     };
   }, [id, linesSvgRef, showMarker]);
+
+  useEffect(() => {
+    lineRef.current?.setAttribute("stroke", cctvLeaderLineStroke(cameraStatus));
+  }, [cameraStatus, showMarker]);
 
   useEffect(() => {
     const root = rootRef.current;

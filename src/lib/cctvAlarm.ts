@@ -33,3 +33,15 @@ export function cctvAlarmRingClass(severity: CctvAlarmSeverity): string {
       "border-severity-warning [--cctv-alarm-color:var(--color-severity-warning)]",
   );
 }
+
+/** 리더 선 stroke — safe는 기본 액센트 블루 */
+export function cctvLeaderLineStroke(status: CctvCameraStatus): string {
+  switch (status) {
+    case "critical":
+      return "rgba(232, 121, 127, 0.95)";
+    case "warning":
+      return "rgba(212, 168, 75, 0.95)";
+    default:
+      return "rgba(77, 163, 255, 0.9)";
+  }
+}
