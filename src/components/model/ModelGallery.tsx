@@ -24,7 +24,7 @@ import {
 } from "@/three/gltfLoader";
 import { applyTextureBudget } from "@/three/textureBudget";
 
-import { computeFocusFromObject } from "../viewport/CameraFlyer";
+import { computeFocusFromObject } from "@/three/cameraFocus";
 
 /** 앱 시작 시 갤러리 GLB 전부 프리로드 (클릭 전에 받기) */
 for (const model of GALLERY_MODELS) {

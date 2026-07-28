@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Quaternion, Vector3, type PerspectiveCamera } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
+import { easeInOutCubic } from "@/lib/easing";
 import {
   type CameraProjection,
   useOfficeCameraStore,
@@ -23,10 +24,6 @@ const _toQuat = new Quaternion();
 const _dir = new Vector3();
 
 const FLIGHT_DURATION = 1.4;
-
-function easeInOutCubic(t: number) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
 
 function syncControlsTarget(
   camera: PerspectiveCamera,

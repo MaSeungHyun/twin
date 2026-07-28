@@ -74,6 +74,8 @@ export function unmountPooledCctvVideo(container: HTMLElement) {
   if (!video?.parentElement) return;
   container.removeChild(video);
   getPoolRoot()?.appendChild(video);
+  /** DOM에 안 보이면 디코드/합성 중단 — 다시 mount 시 ensurePlaying */
+  video.pause();
 }
 
 const MOBILE_PRELOAD_STAGGER_MS = 200;
@@ -94,18 +96,25 @@ export function preloadOfficeVideos(urls: readonly string[]) {
   preloadOfficeVideosWithProgress(urls, () => {});
 }
 
-/** 영상 preload + 진행률(0~100) 콜백 */
+/**
+ * 영상 preload + 진행률(0~100) 콜백.
+ * @returns 취소 함수 (언마운트 시 stagger 타이머 정리)
+ */
 export function preloadOfficeVideosWithProgress(
   urls: readonly string[],
   onProgress: (percent: number) => void,
-) {
+): () => void {
   if (urls.length === 0) {
     onProgress(100);
-    return;
+    return () => {};
   }
 
+  let cancelled = false;
   let readyCount = 0;
+  const timeouts: number[] = [];
+
   const report = () => {
+    if (cancelled) return;
     readyCount += 1;
     onProgress(Math.round((readyCount / urls.length) * 100));
   };
@@ -113,6 +122,7 @@ export function preloadOfficeVideosWithProgress(
   const stagger = isMobileDevice() ? MOBILE_PRELOAD_STAGGER_MS : 0;
   urls.forEach((url, index) => {
     const loadOne = () => {
+      if (cancelled) return;
       const video = acquireCctvVideo(url);
       markVideoReady(video, report);
     };
@@ -122,6 +132,11 @@ export function preloadOfficeVideosWithProgress(
       return;
     }
 
-    window.setTimeout(loadOne, index * stagger);
+    timeouts.push(window.setTimeout(loadOne, index * stagger));
   });
+
+  return () => {
+    cancelled = true;
+    for (const id of timeouts) window.clearTimeout(id);
+  };
 }

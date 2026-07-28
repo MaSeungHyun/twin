@@ -9,7 +9,10 @@ export default function InitialLoadBootstrap() {
   const setVideoProgress = useInitialLoadStore((s) => s.setVideoProgress);
 
   useEffect(() => {
-    preloadOfficeVideosWithProgress(getOfficeCameraVideoUrls(), setVideoProgress);
+    return preloadOfficeVideosWithProgress(
+      getOfficeCameraVideoUrls(),
+      setVideoProgress,
+    );
   }, [setVideoProgress]);
 
   return null;

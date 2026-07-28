@@ -26,12 +26,10 @@ export default function FollowShadowLight() {
   const targetRef = useRef<Object3D>(null);
   const scene = useThree((s) => s.scene);
 
-  const soloId = useCameraStore((s) => s.soloId);
-  const pendingSoloId = useCameraStore((s) => s.pendingSoloId);
-  const focuses = useCameraStore((s) => s.focuses);
-
-  const focusId = pendingSoloId ?? soloId ?? DEFAULT_GALLERY_ID;
-  const focus = focuses[focusId] ?? focuses[DEFAULT_GALLERY_ID];
+  const focus = useCameraStore((s) => {
+    const focusId = s.pendingSoloId ?? s.soloId ?? DEFAULT_GALLERY_ID;
+    return s.focuses[focusId] ?? s.focuses[DEFAULT_GALLERY_ID] ?? null;
+  });
   const shadowsEnabled = useViewportTestStore((s) => s.shadowsEnabled);
 
   useEffect(() => {

@@ -1,7 +1,8 @@
-import { Canvas as R3FCanvas } from "@react-three/fiber";
-import { type WebGLRenderer } from "three";
+import { useEffect } from "react";
+import { Canvas as R3FCanvas, useThree } from "@react-three/fiber";
+import type { WebGLRenderer } from "three";
 
-import { isMobileDevice } from "@/lib/device";
+import { cappedDevicePixelRatio } from "@/lib/device";
 import { bindGltfRenderer } from "@/three/gltfLoader";
 import {
   INITIAL_CAMERA_POSITION,
@@ -9,28 +10,54 @@ import {
 } from "@/three/initialCamera";
 import type { GpuPowerPreference } from "@/stores/viewportTestStore";
 
-/** 레티나에서 fill-rate·VRAM 폭주 → context lost 완화 */
-function cappedDpr(): number {
-  const raw = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-  return isMobileDevice() ? Math.min(raw, 1) : Math.min(raw, 1.5);
-}
-
 type CanvasProps = {
   children: React.ReactNode;
   antialias?: boolean;
   powerPreference?: GpuPowerPreference;
 };
 
+/** context lost/restored 리스너 — onCreated만 쓰면 언마운트 시 해제 불가 */
+function WebGlContextGuard() {
+  const gl = useThree((s) => s.gl) as WebGLRenderer;
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const dpr = () => cappedDevicePixelRatio();
+
+    const onLost = (event: Event) => {
+      event.preventDefault();
+      console.warn(
+        "[WebGL] Context Lost — GPU 부하/메모리 과다. 줌을 줄이거나 모델을 경량화하세요.",
+      );
+    };
+    const onRestored = () => {
+      console.warn("[WebGL] Context Restored");
+      gl.setPixelRatio(dpr());
+    };
+
+    canvas.addEventListener("webglcontextlost", onLost, false);
+    canvas.addEventListener("webglcontextrestored", onRestored, false);
+    return () => {
+      canvas.removeEventListener("webglcontextlost", onLost, false);
+      canvas.removeEventListener("webglcontextrestored", onRestored, false);
+    };
+  }, [gl]);
+
+  return null;
+}
+
 export default function Canvas({
   children,
   antialias = true,
   powerPreference = "high-performance",
 }: CanvasProps): React.ReactNode {
+  const dpr = cappedDevicePixelRatio();
+
   return (
     <R3FCanvas
       key={`${antialias ? "aa-on" : "aa-off"}-${powerPreference}`}
       shadows
-      dpr={cappedDpr()}
+      dpr={dpr}
       gl={{
         antialias,
         powerPreference,
@@ -46,23 +73,10 @@ export default function Canvas({
       onCreated={({ gl }) => {
         const renderer = gl as WebGLRenderer;
         bindGltfRenderer(renderer);
-        renderer.setPixelRatio(cappedDpr());
-
-        const canvas = renderer.domElement;
-        const onLost = (event: Event) => {
-          event.preventDefault();
-          console.warn(
-            "[WebGL] Context Lost — GPU 부하/메모리 과다. 줌을 줄이거나 모델을 경량화하세요.",
-          );
-        };
-        const onRestored = () => {
-          console.warn("[WebGL] Context Restored");
-          renderer.setPixelRatio(cappedDpr());
-        };
-        canvas.addEventListener("webglcontextlost", onLost, false);
-        canvas.addEventListener("webglcontextrestored", onRestored, false);
+        renderer.setPixelRatio(cappedDevicePixelRatio());
       }}
     >
+      <WebGlContextGuard />
       {children}
     </R3FCanvas>
   );

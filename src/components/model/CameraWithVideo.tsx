@@ -357,7 +357,7 @@ export default function CameraWithVideo({
                 x2={0}
                 y2={0}
                 stroke="rgba(77, 163, 255, 0.9)"
-                strokeWidth={3}
+                strokeWidth={1.5}
                 strokeLinecap="round"
                 style={{ opacity: 0 }}
               />

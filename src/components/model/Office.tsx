@@ -3,7 +3,10 @@ import { useGLTF } from "@react-three/drei";
 import { Group } from "three";
 
 import model from "@/assets/model/Seperate_Office.glb";
-import { getCctvVideoByIndex, getCctvVideoTitleByIndex } from "@/data/officeCameraVideos";
+import {
+  getCctvVideoByIndex,
+  getCctvVideoTitleByIndex,
+} from "@/data/officeCameraVideos";
 import { useInitialLoadStore } from "@/stores/initialLoadStore";
 import { useOfficeCameraStore } from "@/stores/officeCameraStore";
 import { useOfficeStore } from "@/stores/officeStore";
@@ -23,7 +26,10 @@ import {
 import { collectOfficeCameras } from "@/three/officeCamera";
 import { collectOfficeFloorObjects } from "@/three/officeFloorVisibility";
 import { ensureOfficeFloorClones } from "@/three/officeFloorClones";
-import { buildOfficeFloorInstances } from "@/three/officeFloorInstancing";
+import {
+  buildOfficeFloorInstances,
+  disposeOfficeFloorInstances,
+} from "@/three/officeFloorInstancing";
 import { prepareOfficeScene } from "@/three/prepareOfficeScene";
 
 import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
@@ -32,7 +38,6 @@ import CameraWithVideo from "./CameraWithVideo";
 function OfficeModel() {
   const group = useRef<Group>(null);
   const floorLayoutRef = useRef<OfficeFloorLayout | null>(null);
-  const floorLayoutReadyRef = useRef(false);
 
   const gltf = useGLTF(
     model,
@@ -59,10 +64,7 @@ function OfficeModel() {
   const setViews = useOfficeCameraStore((s) => s.setViews);
   const setModelProgress = useInitialLoadStore((s) => s.setModelProgress);
 
-  const cctvMarkers = useMemo(
-    () => collectCctvMarkers(scene),
-    [scene],
-  );
+  const cctvMarkers = useMemo(() => collectCctvMarkers(scene), [scene]);
 
   const floorObjects = useMemo(
     () => collectOfficeFloorObjects(scene),
@@ -78,9 +80,6 @@ function OfficeModel() {
   }, [scene, setViews]);
 
   useEffect(() => {
-    floorLayoutReadyRef.current = false;
-    floorLayoutRef.current = null;
-
     if (floorObjects.size === 0) {
       setAvailableFloorActions([]);
       setActiveFloorAction(null);
@@ -92,7 +91,6 @@ function OfficeModel() {
 
       const layout = createOfficeFloorLayout(scene, floorObjects);
       floorLayoutRef.current = layout;
-      floorLayoutReadyRef.current = layout !== null;
 
       setAvailableFloorActions(getAvailableFloorActions(floorObjects));
       setActiveFloorAction(layout ? "Default" : null);
@@ -112,9 +110,11 @@ function OfficeModel() {
     return () => {
       disposeOfficeFloorLayout(floorLayoutRef.current);
       floorLayoutRef.current = null;
-      floorLayoutReadyRef.current = false;
+      /** geometry/material은 GLTF 캐시 공유 — InstancedMesh 버퍼만 해제 */
+      disposeOfficeFloorInstances(scene);
+      scene.removeFromParent();
     };
-  }, []);
+  }, [scene]);
 
   useEffect(() => {
     if (!floorCommand) return;

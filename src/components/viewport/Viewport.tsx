@@ -1,5 +1,3 @@
-// import ModelSelector from "../model/ModelSelector";
-// import RenderTestControls from "./RenderTestControls";
 import CctvVideoPopup from "../panels/CctvVideoPopup";
 import CompassWidget from "./CompassWidget";
 import Fallback from "./Fallback";
@@ -16,7 +14,7 @@ export default function Viewport() {
         <ViewportScene />
       </div>
 
-      <div className="pointer-events-none absolute inset-0 z-30">
+      <div className="pointer-events-none absolute inset-0 z-50">
         <CompassWidget />
       </div>
 

@@ -17,12 +17,11 @@ export default function OfficeUI() {
 
   return (
     <nav
-      className="hud-floor-bar"
+      className="pointer-events-auto absolute bottom-[calc(var(--shell-bottom)+0.35rem)] left-1/2 z-[44] flex max-w-[min(96vw,36rem)] -translate-x-1/2 flex-wrap justify-center gap-[0.35rem] rounded-[0.85rem] border border-border bg-panel p-[0.35rem] shadow-[var(--shadow-float)] backdrop-blur-[var(--glass-blur)]"
       aria-label="Office floor controls"
     >
       {floorActions.map(({ id, label }) => {
-        const isActive = activeFloorAction === id;
-        const isRunning = floorCommand === id;
+        const selected = activeFloorAction === id || floorCommand === id;
 
         return (
           <button
@@ -31,8 +30,11 @@ export default function OfficeUI() {
             disabled={floorBusy}
             onClick={() => playFloorAction(id)}
             className={cn(
-              "hud-floor-bar__btn",
-              (isActive || isRunning) && "hud-floor-bar__btn--active",
+              "inline-flex min-h-[2.1rem] min-w-[2.75rem] cursor-pointer items-center justify-center rounded-[0.65rem] border border-transparent bg-transparent px-[0.85rem] py-[0.35rem] font-ui text-[0.78rem] font-semibold text-muted transition-[color,background,border-color] duration-150",
+              "enabled:hover:border-white/12 enabled:hover:bg-white/5 enabled:hover:text-text",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+              "disabled:cursor-not-allowed disabled:opacity-40",
+              selected && "border-accent/35 bg-accent/16 text-text",
             )}
           >
             {label}

@@ -172,7 +172,8 @@ function ensureFloorAnchors(
   return floors;
 }
 
-/** instance matrix — base world + 층 anchor Y 이동 */export function syncOfficeFloorInstances(
+/** instance matrix — base world + 층 anchor Y 이동 */
+export function syncOfficeFloorInstances(
   registry: OfficeFloorInstanceRegistry,
   floors: ReadonlyMap<OfficeFloorObjectKey, Object3D>,
   visibility: Readonly<Record<OfficeFloorObjectKey, boolean>> | null = null,
@@ -224,6 +225,28 @@ export function getOfficeFloorInstanceRegistry(
   if (!registry) return null;
   if (!isRegistryForRoot(registry, root)) return null;
   return registry;
+}
+
+/**
+ * InstancedMesh 인스턴스 버퍼만 해제.
+ * geometry/material은 useGLTF 캐시와 공유하므로 dispose하지 않음.
+ */
+export function disposeOfficeFloorInstances(root: Object3D) {
+  const registry = root.userData[OFFICE_FLOOR_INSTANCING_KEY] as
+    | OfficeFloorInstanceRegistry
+    | undefined;
+  delete root.userData[OFFICE_FLOOR_INSTANCING_KEY];
+  if (!registry) return;
+
+  for (const { instanced } of registry.entries) {
+    instanced.removeFromParent();
+    instanced.dispose();
+  }
+  registry.instancesRoot.removeFromParent();
+
+  for (const { proxy } of registry.cameraProxies) {
+    proxy.removeFromParent();
+  }
 }
 
 function isRegistryForRoot(
