@@ -39,7 +39,6 @@ import { prepareOfficeScene } from "@/three/prepareOfficeScene";
 import CctvAnchorBinder from "../viewport/CctvAnchorBinder";
 import CctvProjectionSync from "../viewport/CctvProjectionSync";
 import CctvFloorHeatmap from "./CctvFloorHeatmap";
-import { useFrame, useThree } from "@react-three/fiber";
 
 function OfficeModel() {
   const group = useRef<Group>(null);
@@ -168,12 +167,6 @@ function OfficeModel() {
 }
 
 export default function Office() {
-  const camera = useThree((s) => s.camera);
-
-  useFrame(() => {
-    console.log(camera.position);
-    console.log(camera.quaternion);
-  });
   return (
     <Suspense fallback={null}>
       <OfficeModel />
