@@ -10,7 +10,6 @@ import Controls from "./Controls";
 import FollowShadowLight from "./FollowShadowLight";
 import FrameloopPauseOnPopup from "./FrameloopPauseOnPopup";
 import LoadProgressSync from "./LoadProgressSync";
-import OfficeCameraFlyer from "./OfficeCameraFlyer";
 import SceneShadowSync from "./SceneShadowSync";
 
 export default function ViewportScene() {
@@ -32,9 +31,7 @@ export default function ViewportScene() {
       <Controls />
       <LoadProgressSync />
       <CompassController />
-      <OfficeCameraFlyer />
       <Office />
-
       <EffectComposer multisampling={4}>
         <Bloom
           intensity={markersActive ? 1.1 : 1.5}
