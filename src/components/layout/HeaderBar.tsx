@@ -1,9 +1,9 @@
 import { getStationBundle } from "@/data/stations/registry";
 import { useClock } from "@/hooks/useClock";
-import { useIsMobileDevice } from "@/hooks/useIsMobileDevice";
+// import { useIsMobileDevice } from "@/hooks/useIsMobileDevice";
 import { cn } from "@/lib/utils";
-import type { ScheduleStatus } from "@/stores/scheduleStore";
-import { useScheduleStore } from "@/stores/scheduleStore";
+// import type { ScheduleStatus } from "@/stores/scheduleStore";
+// import { useScheduleStore } from "@/stores/scheduleStore";
 import { useUiStore } from "@/stores/uiStore";
 
 const STATION = getStationBundle("SEOUL");
@@ -11,29 +11,29 @@ const ZONES = [...STATION.config.zones].sort(
   (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
 );
 
-function tagoBadgeForStatus(status: ScheduleStatus) {
-  switch (status) {
-    case "fresh":
-      return { label: "Live · TAGO", className: "hud-badge--live" };
-    case "stale":
-      return { label: "TAGO delayed", className: "hud-badge--warn" };
-    case "error":
-      return { label: "TAGO offline", className: "hud-badge--error" };
-    case "loading":
-      return { label: "TAGO…", className: "hud-badge--muted" };
-    default:
-      return { label: "TAGO", className: "hud-badge--muted" };
-  }
-}
+// function tagoBadgeForStatus(status: ScheduleStatus) {
+//   switch (status) {
+//     case "fresh":
+//       return { label: "Live · TAGO", className: "hud-badge--live" };
+//     case "stale":
+//       return { label: "TAGO delayed", className: "hud-badge--warn" };
+//     case "error":
+//       return { label: "TAGO offline", className: "hud-badge--error" };
+//     case "loading":
+//       return { label: "TAGO…", className: "hud-badge--muted" };
+//     default:
+//       return { label: "TAGO", className: "hud-badge--muted" };
+//   }
+// }
 
 export function HeaderBar() {
   const clock = useClock();
   const selectedZoneId = useUiStore((s) => s.selectedZoneId);
   const selectZone = useUiStore((s) => s.selectZone);
-  const scheduleStatus = useScheduleStore((s) => s.status);
-  const tagoBadge = tagoBadgeForStatus(scheduleStatus);
-  const mobile = useIsMobileDevice();
-  const videoQuality = mobile ? "720p" : "1080p";
+  // const scheduleStatus = useScheduleStore((s) => s.status);
+  // const tagoBadge = tagoBadgeForStatus(scheduleStatus);
+  // const mobile = useIsMobileDevice();
+  // const videoQuality = mobile ? "720p" : "1080p";
 
   return (
     <header className="hud-top">
