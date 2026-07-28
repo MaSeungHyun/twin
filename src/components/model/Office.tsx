@@ -4,7 +4,8 @@ import { Group } from "three";
 
 import model from "@/assets/model/Seperate_Office.glb";
 import {
-  getCctvVideoByIndex,
+  getCctvMarkerVideoByIndex,
+  getCctvPopupVideoByIndex,
   getCctvVideoTitleByIndex,
 } from "@/data/officeCameraVideos";
 import { useInitialLoadStore } from "@/stores/initialLoadStore";
@@ -84,7 +85,8 @@ function OfficeModel() {
         markerName: marker.name,
         floor: marker.floor,
         videoTitle: getCctvVideoTitleByIndex(index),
-        videoSrc: getCctvVideoByIndex(index),
+        videoSrc: getCctvMarkerVideoByIndex(index),
+        videoSrcFull: getCctvPopupVideoByIndex(index),
       })),
     );
     return () => clearOverlayMarkers();

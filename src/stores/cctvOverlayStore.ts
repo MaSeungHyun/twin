@@ -7,7 +7,10 @@ export type CctvOverlayMarkerDef = {
   id: string;
   markerName: string;
   videoTitle: string;
+  /** 오버레이 카드용 저화질 */
   videoSrc: string;
+  /** 팝업 확대용 고화질 */
+  videoSrcFull: string;
   floor: OfficeFloorObjectKey | null;
 };
 

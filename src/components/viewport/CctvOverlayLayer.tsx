@@ -41,6 +41,7 @@ function CctvOverlayMarker({
   markerName,
   videoTitle,
   videoSrc,
+  videoSrcFull,
   floor,
 }: CctvOverlayMarkerDef) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -53,9 +54,7 @@ function CctvOverlayMarker({
   const [isPointerOver, setIsPointerOver] = useState(false);
 
   const cameraStatus = useCctvCameraStatus(markerName);
-  const alarmSeverity = isCctvAlarmSeverity(cameraStatus)
-    ? cameraStatus
-    : null;
+  const alarmSeverity = isCctvAlarmSeverity(cameraStatus) ? cameraStatus : null;
   const markerVisibleByFloor = useMarkerVisibleByFloor(floor);
   const isAlarmActive = useCctvAlarmActive(id) && alarmSeverity != null;
   const dismissAlarm = useCctvAlarmStore((s) => s.dismiss);
@@ -150,22 +149,28 @@ function CctvOverlayMarker({
   }, [isPointerOver, resetPointerOver]);
 
   const handleOpenPopup = useCallback(() => {
-    const video = acquireCctvVideo(videoSrc);
+    const markerVideo = acquireCctvVideo(videoSrc);
+    const fullVideo = acquireCctvVideo(videoSrcFull);
+    try {
+      fullVideo.currentTime = markerVideo.currentTime;
+    } catch {
+      /* seek 불가 시 무시 */
+    }
     openPopup({
       cameraId: id,
       cameraName: videoTitle,
       statusKey: markerName,
-      videoSrc,
-      startTime: video.currentTime,
+      videoSrc: videoSrcFull,
+      startTime: fullVideo.currentTime,
     });
-  }, [id, markerName, openPopup, videoSrc, videoTitle]);
+  }, [id, markerName, openPopup, videoSrc, videoSrcFull, videoTitle]);
 
   if (!showMarker) return null;
 
   return (
     <div
       ref={rootRef}
-      className="cctv-overlay-marker pointer-events-auto absolute top-0 left-0 will-change-transform"
+      className="cctv-overlay-marker pointer-events-auto absolute top-0 left-0 will-change-transform "
       style={{ transform: "translate(-9999px, -9999px)" }}
     >
       <div className="relative">
