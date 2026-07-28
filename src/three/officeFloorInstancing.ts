@@ -280,7 +280,7 @@ export function buildOfficeFloorInstances(root: Object3D): OfficeFloorInstanceRe
   const cameraProxies = createCameraProxies(f1, floors);
 
   const instancesRoot = new Group();
-  instancesRoot.name = "OfficeFloorInstances";
+  instancesRoot.name = "RuntimeOfficeFloorInstances";
   (f1.parent ?? root).add(instancesRoot);
 
   const entries: OfficeFloorInstanceEntry[] = [];

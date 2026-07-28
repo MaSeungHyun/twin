@@ -11,10 +11,15 @@ export type CctvMarkerSource = {
 };
 
 const FLOOR_NODE_TO_KEY: Record<string, OfficeFloorObjectKey> = {
+  OfficeFloorInstances: "1F",
   F1: "1F",
+  "1F": "1F",
   F2: "2F",
+  "2F": "2F",
   F3: "3F",
+  "3F": "3F",
   F4: "4F",
+  "4F": "4F",
 };
 
 const FLOOR_ORDER: OfficeFloorObjectKey[] = ["1F", "2F", "3F", "4F"];

@@ -1,10 +1,10 @@
-import platform1_360 from "@/assets/video/360p/platform1.mp4";
-import platform2_360 from "@/assets/video/360p/platform2.mp4";
-import platform3_360 from "@/assets/video/360p/platform3.mp4";
-import platform4_360 from "@/assets/video/360p/platform4.mp4";
-import transfer1_360 from "@/assets/video/360p/transfer1.mp4";
-import transfer2_360 from "@/assets/video/360p/transfer2.mp4";
-import transfer3_360 from "@/assets/video/360p/transfer3.mp4";
+import platform1_240 from "@/assets/video/240p/platform1.mp4";
+import platform2_240 from "@/assets/video/240p/platform2.mp4";
+import platform3_240 from "@/assets/video/240p/platform3.mp4";
+import platform4_240 from "@/assets/video/240p/platform4.mp4";
+import transfer1_240 from "@/assets/video/240p/transfer1.mp4";
+import transfer2_240 from "@/assets/video/240p/transfer2.mp4";
+import transfer3_240 from "@/assets/video/240p/transfer3.mp4";
 import platform1_720 from "@/assets/video/720p/platform1.mp4";
 import platform2_720 from "@/assets/video/720p/platform2.mp4";
 import platform3_720 from "@/assets/video/720p/platform3.mp4";
@@ -34,14 +34,14 @@ const OFFICE_CAMERA_VIDEO_ORDER = [
 
 type VideoId = (typeof OFFICE_CAMERA_VIDEO_ORDER)[number];
 
-const VIDEOS_360 = {
-  platform1: platform1_360,
-  platform2: platform2_360,
-  platform3: platform3_360,
-  platform4: platform4_360,
-  transfer1: transfer1_360,
-  transfer2: transfer2_360,
-  transfer3: transfer3_360,
+const VIDEOS_240 = {
+  platform1: platform1_240,
+  platform2: platform2_240,
+  platform3: platform3_240,
+  platform4: platform4_240,
+  transfer1: transfer1_240,
+  transfer2: transfer2_240,
+  transfer3: transfer3_240,
 } as const satisfies Record<VideoId, string>;
 
 const VIDEOS_720 = {
@@ -68,9 +68,9 @@ function videoIdAt(index: number): VideoId {
   return OFFICE_CAMERA_VIDEO_ORDER[index % OFFICE_CAMERA_VIDEO_ORDER.length];
 }
 
-/** 오버레이 마커 카드용 — 항상 360p */
+/** 오버레이 마커 카드용 — 항상 240p */
 export function getCctvMarkerVideoByIndex(index: number): string {
-  return VIDEOS_360[videoIdAt(index)];
+  return VIDEOS_240[videoIdAt(index)];
 }
 
 /** 팝업 확대용 — 데스크톱 1080p / 모바일·태블릿 720p */
@@ -86,9 +86,9 @@ export function getCctvVideoByIndex(index: number): string {
   return getCctvMarkerVideoByIndex(index);
 }
 
-/** 초기 preload — 마커(360p) 위주 (항상 보이는 쪽) */
+/** 초기 preload — 마커(240p) 위주 (항상 보이는 쪽) */
 export function getOfficeCameraVideoUrls(): readonly string[] {
-  return OFFICE_CAMERA_VIDEO_ORDER.map((id) => VIDEOS_360[id]);
+  return OFFICE_CAMERA_VIDEO_ORDER.map((id) => VIDEOS_240[id]);
 }
 
 /** 마커 제목용 — 비디오 파일명(확장자 제외) */

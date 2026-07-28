@@ -4,7 +4,7 @@
  * - 없으면: 1080p/ 폴더를 소스로 사용
  *
  * 출력:
- * - 360p/  마커 썸네일용
+ * - 240p/  마커 썸네일용
  * - 720p/  모바일·태블릿 팝업
  * - 1080p/ 데스크톱 팝업
  *
@@ -32,7 +32,7 @@ if (!ffmpeg || !existsSync(ffmpeg)) {
 
 const TIERS = [
   /** 오버레이 카드(~150px)용 — 디코드 부담 최소화 */
-  { dir: "360p", maxW: 640, maxH: 360, crf: "28", audioKbps: "64k" },
+  { dir: "240p", maxW: 426, maxH: 240, crf: "30", audioKbps: "48k" },
   { dir: "720p", maxW: 1280, maxH: 720, crf: "23", audioKbps: "128k" },
   { dir: "1080p", maxW: 1920, maxH: 1080, crf: "23", audioKbps: "128k" },
 ];
@@ -101,7 +101,7 @@ function transcode(input, output, { maxW, maxH, crf, audioKbps }) {
 
 const sources = resolveSources();
 const tiers = markerOnly
-  ? TIERS.filter((t) => t.dir === "360p")
+  ? TIERS.filter((t) => t.dir === "240p")
   : TIERS;
 
 for (const tier of tiers) {

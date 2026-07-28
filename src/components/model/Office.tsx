@@ -33,6 +33,7 @@ import {
   buildOfficeFloorInstances,
   disposeOfficeFloorInstances,
 } from "@/three/officeFloorInstancing";
+import { ensureOfficeFloorRoot } from "@/three/officeFloorRoot";
 import { prepareOfficeScene } from "@/three/prepareOfficeScene";
 
 import CctvAnchorBinder from "../viewport/CctvAnchorBinder";
@@ -53,6 +54,7 @@ function OfficeModel() {
   const scene = useMemo(() => {
     const instance = gltf.scene.clone(true);
     prepareOfficeScene(instance);
+    ensureOfficeFloorRoot(instance);
     if (!buildOfficeFloorInstances(instance)) {
       ensureOfficeFloorClones(instance);
     }

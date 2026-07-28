@@ -25,7 +25,8 @@ export const FLOOR_OBJECT_CANDIDATES: Record<
   Exclude<OfficeFloorActionId, "Default">,
   readonly string[]
 > = {
-  "1F": ["F1", "1F"],
+  /** optimize 후 F1 → OfficeFloorInstances */
+  "1F": ["OfficeFloorInstances", "F1", "1F"],
   "2F": ["F2", "2F"],
   "3F": ["F3", "3F"],
   "4F": ["F4", "4F"],
