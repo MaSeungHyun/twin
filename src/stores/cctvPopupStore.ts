@@ -1,12 +1,11 @@
 import { create } from "zustand";
 
-import type { CctvAlarmSeverity } from "@/lib/cctvAlarm";
-
 type CctvPopupPayload = {
   cameraId: string;
   cameraName: string;
+  /** 상태 조회용 GLB 카메라 name */
+  statusKey: string;
   videoSrc: string;
-  alarmSeverity: CctvAlarmSeverity;
   startTime: number;
 };
 
@@ -20,8 +19,8 @@ const initialState: CctvPopupPayload & { isOpen: boolean } = {
   isOpen: false,
   cameraId: "",
   cameraName: "",
+  statusKey: "",
   videoSrc: "",
-  alarmSeverity: "warning",
   startTime: 0,
 };
 

@@ -21,7 +21,7 @@ const _lightPos = new Vector3();
  */
 export default function FollowShadowLight() {
   const mobile = isMobileDevice();
-  const shadowMap = mobile ? 1024 : 2048;
+  const shadowMap = mobile ? 256 : 512;
   const lightRef = useRef<DirectionalLight>(null);
   const targetRef = useRef<Object3D>(null);
   const scene = useThree((s) => s.scene);

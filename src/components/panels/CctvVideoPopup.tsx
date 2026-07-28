@@ -6,20 +6,26 @@ import {
   cctvAlarmBadgeClass,
   cctvAlarmRingClass,
   cctvAlarmLabel,
+  isCctvAlarmSeverity,
 } from "@/lib/cctvAlarm";
 import { cn } from "@/lib/utils";
 import { useCctvAlarmActive, useCctvAlarmStore } from "@/stores/cctvAlarmStore";
+import { useCctvCameraStatus } from "@/stores/cctvCameraStatusStore";
 import { useCctvPopupStore } from "@/stores/cctvPopupStore";
 
 export default function CctvVideoPopup() {
   const isOpen = useCctvPopupStore((state) => state.isOpen);
   const cameraId = useCctvPopupStore((state) => state.cameraId);
   const cameraName = useCctvPopupStore((state) => state.cameraName);
+  const statusKey = useCctvPopupStore((state) => state.statusKey);
   const videoSrc = useCctvPopupStore((state) => state.videoSrc);
-  const alarmSeverity = useCctvPopupStore((state) => state.alarmSeverity);
   const close = useCctvPopupStore((state) => state.close);
 
-  const isAlarmActive = useCctvAlarmActive(cameraId);
+  const cameraStatus = useCctvCameraStatus(statusKey);
+  const alarmSeverity = isCctvAlarmSeverity(cameraStatus)
+    ? cameraStatus
+    : null;
+  const isAlarmActive = useCctvAlarmActive(cameraId) && alarmSeverity != null;
   const dismissAlarm = useCctvAlarmStore((state) => state.dismiss);
   const [videoContainer, setVideoContainer] = useState<HTMLDivElement | null>(
     null,
@@ -50,7 +56,9 @@ export default function CctvVideoPopup() {
       <div
         className={cn(
           "w-5/6 overflow-hidden rounded-xl border-2 bg-bg shadow-[0_24px_64px_rgba(0,0,0,0.45)]",
-          isAlarmActive ? cctvAlarmRingClass(alarmSeverity) : "border-border",
+          isAlarmActive && alarmSeverity
+            ? cctvAlarmRingClass(alarmSeverity)
+            : "border-border",
         )}
         role="dialog"
         aria-modal="true"
@@ -60,7 +68,7 @@ export default function CctvVideoPopup() {
         <div className="flex items-center justify-between gap-3 border-b border-border bg-white/3 px-4 py-1">
           <div className="flex min-w-0 items-center gap-2">
             <h2 className="m-0 text-[15px] font-semibold">{cameraName}</h2>
-            {isAlarmActive && (
+            {isAlarmActive && alarmSeverity && (
               <button
                 type="button"
                 className={cctvAlarmBadgeClass(alarmSeverity)}

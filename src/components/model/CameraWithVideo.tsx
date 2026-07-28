@@ -8,7 +8,7 @@ import {
   cctvAlarmBadgeClass,
   cctvAlarmLabel,
   cctvAlarmRingClass,
-  getStableCctvAlarmSeverity,
+  isCctvAlarmSeverity,
 } from "@/lib/cctvAlarm";
 import { clampPanelToViewport, worldToScreen } from "@/lib/cctvLeaderLine";
 import {
@@ -23,6 +23,7 @@ import {
 } from "@/data/cctvMarkerOffsets";
 import { cn } from "@/lib/utils";
 import { useCctvAlarmActive, useCctvAlarmStore } from "@/stores/cctvAlarmStore";
+import { useCctvCameraStatus } from "@/stores/cctvCameraStatusStore";
 import {
   CCTV_MARKER_Z_INDEX_DEFAULT,
   CCTV_MARKER_Z_INDEX_HOVER,
@@ -92,10 +93,10 @@ export default function CameraWithVideo({
 
   const markerId = anchor.uuid;
 
-  const alarmSeverity = useMemo(
-    () => getStableCctvAlarmSeverity(markerName),
-    [markerName],
-  );
+  const cameraStatus = useCctvCameraStatus(markerName);
+  const alarmSeverity = isCctvAlarmSeverity(cameraStatus)
+    ? cameraStatus
+    : null;
   const markerOffset = useMemo(() => getCctvMarkerWorldOffset(), []);
   const markerVisibleByFloor = useOfficeStore((state) => {
     if (state.floorCommand !== null) return false;
@@ -106,7 +107,7 @@ export default function CameraWithVideo({
       state.activeFloorAction === floor
     );
   });
-  const isAlarmActive = useCctvAlarmActive(markerId);
+  const isAlarmActive = useCctvAlarmActive(markerId) && alarmSeverity != null;
   const dismissAlarm = useCctvAlarmStore((state) => state.dismiss);
   const openPopup = useCctvPopupStore((state) => state.open);
   const isPopupOpen = useCctvPopupStore((state) => state.isOpen);
@@ -136,11 +137,11 @@ export default function CameraWithVideo({
     openPopup({
       cameraId: markerId,
       cameraName: videoTitle,
+      statusKey: markerName,
       videoSrc,
-      alarmSeverity,
       startTime: video.currentTime,
     });
-  }, [alarmSeverity, markerId, openPopup, videoSrc, videoTitle]);
+  }, [markerId, markerName, openPopup, videoSrc, videoTitle]);
 
   const handleDismissAlarm = useCallback(
     (event: React.MouseEvent | React.KeyboardEvent) => {
@@ -380,7 +381,7 @@ export default function CameraWithVideo({
                 ref={cardRef}
                 className={cn(
                   "bg-bg/95 origin-center overflow-hidden rounded-md border-2 shadow-lg transition-transform duration-150 ease-out",
-                  isAlarmActive
+                  isAlarmActive && alarmSeverity
                     ? cctvAlarmRingClass(alarmSeverity)
                     : "border-border",
                 )}
@@ -391,7 +392,7 @@ export default function CameraWithVideo({
               >
                 <div className="bg-accent/20 text-text flex items-center gap-1 px-2 py-1 text-xs font-semibold">
                   <span>{videoTitle}</span>
-                  {isAlarmActive && (
+                  {isAlarmActive && alarmSeverity && (
                     <button
                       type="button"
                       className={cctvAlarmBadgeClass(alarmSeverity)}

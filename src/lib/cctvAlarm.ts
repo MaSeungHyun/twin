@@ -1,28 +1,15 @@
 import { cn } from "@/lib/utils";
 
-export type CctvAlarmSeverity = "critical" | "warning";
+/** 카메라 런타임 상태 — safe면 알람/히트맵 없음 */
+export type CctvCameraStatus = "safe" | "warning" | "critical";
 
-/** GLB 카메라 name(소문자) → 알람 등급 */
-const ALARM_BY_CAMERA_NAME: Record<string, CctvAlarmSeverity> = {
-  office: "critical",
-  office2: "warning",
-  cafe: "warning",
-  camera: "critical",
-};
+/** 알람 UI용 (safe 제외) */
+export type CctvAlarmSeverity = Exclude<CctvCameraStatus, "safe">;
 
-function hashString(value: string): number {
-  let hash = 0;
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-export function getStableCctvAlarmSeverity(cameraName: string): CctvAlarmSeverity {
-  const mapped = ALARM_BY_CAMERA_NAME[cameraName.toLowerCase()];
-  if (mapped) return mapped;
-  return hashString(cameraName) % 2 === 0 ? "critical" : "warning";
+export function isCctvAlarmSeverity(
+  status: CctvCameraStatus,
+): status is CctvAlarmSeverity {
+  return status === "warning" || status === "critical";
 }
 
 export function cctvAlarmLabel(severity: CctvAlarmSeverity): string {

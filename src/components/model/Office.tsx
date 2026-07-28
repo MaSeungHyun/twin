@@ -34,6 +34,8 @@ import { prepareOfficeScene } from "@/three/prepareOfficeScene";
 
 import CctvHtmlLayoutSync from "../viewport/CctvHtmlLayoutSync";
 import CameraWithVideo from "./CameraWithVideo";
+import CctvFloorHeatmap from "./CctvFloorHeatmap";
+import { useCctvCameraStatusStore } from "@/stores/cctvCameraStatusStore";
 
 function OfficeModel() {
   const group = useRef<Group>(null);
@@ -65,6 +67,12 @@ function OfficeModel() {
   const setModelProgress = useInitialLoadStore((s) => s.setModelProgress);
 
   const cctvMarkers = useMemo(() => collectCctvMarkers(scene), [scene]);
+
+  useEffect(() => {
+    useCctvCameraStatusStore
+      .getState()
+      .registerCameras(cctvMarkers.map((m) => m.name));
+  }, [cctvMarkers]);
 
   const floorObjects = useMemo(
     () => collectOfficeFloorObjects(scene),
@@ -135,6 +143,11 @@ function OfficeModel() {
     <group ref={group}>
       <CctvHtmlLayoutSync />
       <primitive object={scene} />
+      <CctvFloorHeatmap
+        sceneRoot={scene}
+        markers={cctvMarkers}
+        floorObjects={floorObjects}
+      />
       {cctvMarkers.map((marker, index) => (
         <CameraWithVideo
           key={marker.id}
