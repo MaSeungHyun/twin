@@ -154,8 +154,9 @@ export function TrainSchedulePanel() {
             <p>Unable to reach TAGO.</p>
             {errorMessage && <p className="schedule-panel__error-detail">{errorMessage}</p>}
             <p className="schedule-panel__error-detail">
-              Activate &quot;국토교통부_(TAGO)_열차정보&quot; on data.go.kr and set{' '}
-              <code>VITE_TAGO_SERVICE_KEY</code> in <code>.env</code>.
+              Activate &quot;국토교통부_(TAGO)_열차정보&quot; on data.go.kr, then set{' '}
+              <code>TAGO_SERVICE_KEY</code> in Vercel for production or{' '}
+              <code>VITE_TAGO_SERVICE_KEY</code> in <code>.env</code> for local development.
             </p>
             <button type="button" className="schedule-panel__retry" onClick={() => void refresh()}>
               Retry
