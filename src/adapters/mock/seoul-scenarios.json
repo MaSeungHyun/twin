@@ -84,7 +84,7 @@
       "alarm": {
         "type": "TOILET_EMERGENCY",
         "severity": "CRITICAL",
-        "zoneId": "restroom",
+        "zoneId": "transfer3",
         "deviceId": "rs-02",
         "title": "transfer3 위급",
         "message": "transfer3 인근에서 위급 신호가 접수되었습니다."
