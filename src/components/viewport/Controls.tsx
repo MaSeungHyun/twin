@@ -1,5 +1,5 @@
 import { OrbitControls } from "@react-three/drei";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import { isMobileDevice } from "@/lib/device";
 import { getInitialCameraTarget } from "@/three/initialCamera";
@@ -10,11 +10,6 @@ export default function Controls(): React.ReactNode {
   const mobile = isMobileDevice();
   const target = useMemo(() => getInitialCameraTarget(), []);
 
-  const camera = useThree((state) => state.camera);
-  useFrame(() => {
-    console.log(camera.position);
-    console.log(camera.quaternion);
-  });
   return (
     <OrbitControls
       makeDefault
