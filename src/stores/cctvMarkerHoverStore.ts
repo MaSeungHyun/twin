@@ -23,8 +23,8 @@ export const useCctvMarkerHoverStore = create<CctvMarkerHoverState>((set) => ({
 /** drei Html 기본 depth 정렬 범위 */
 export const CCTV_MARKER_Z_INDEX_DEFAULT: [number, number] = [100, 0];
 
-/** hover 시 다른 마커·UI 위로 올림 */
-export const CCTV_MARKER_Z_INDEX_HOVER = 2_000_000;
+/** hover 시 다른 마커 위로 올림 (HUD/팝업보다 낮게) */
+export const CCTV_MARKER_Z_INDEX_HOVER = 500;
 
 const _objectPos = new Vector3();
 const _cameraPos = new Vector3();

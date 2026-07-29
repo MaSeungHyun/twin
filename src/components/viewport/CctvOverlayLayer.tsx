@@ -164,24 +164,10 @@ function CctvOverlayMarker({
     clearHoveredId(id);
   }, [clearHoveredId, id]);
 
-  useEffect(() => {
-    if (!isPointerOver) return;
-
-    const handleGlobalPointer = (event: PointerEvent) => {
-      const card = cardRef.current;
-      if (!card) return;
-      const target = event.target;
-      if (target instanceof Node && card.contains(target)) return;
-      resetPointerOver();
-    };
-
-    document.addEventListener("pointermove", handleGlobalPointer, true);
-    document.addEventListener("pointerdown", handleGlobalPointer, true);
-    return () => {
-      document.removeEventListener("pointermove", handleGlobalPointer, true);
-      document.removeEventListener("pointerdown", handleGlobalPointer, true);
-    };
-  }, [isPointerOver, resetPointerOver]);
+  const handlePointerEnter = useCallback(() => {
+    setIsPointerOver(true);
+    setHoveredId(id);
+  }, [id, setHoveredId]);
 
   const handleOpenPopup = useCallback(() => {
     let startTime = 0;
@@ -204,7 +190,7 @@ function CctvOverlayMarker({
   return (
     <div
       ref={rootRef}
-      className="cctv-overlay-marker pointer-events-auto absolute top-0 left-0"
+      className="cctv-overlay-marker pointer-events-none absolute top-0 left-0"
       style={{ transform: "translate(-9999px, -9999px)" }}
     >
       <div
@@ -218,31 +204,28 @@ function CctvOverlayMarker({
             handleOpenPopup();
           }
         }}
-        className="relative w-[100px] origin-center cursor-pointer touch-manipulation md:w-[120px] lg:w-[150px]"
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={(event) => {
+          const related = event.relatedTarget;
+          if (
+            related instanceof Node &&
+            event.currentTarget.contains(related)
+          ) {
+            return;
+          }
+          resetPointerOver();
+        }}
+        onPointerCancel={resetPointerOver}
+        className="relative w-[100px] origin-center cursor-pointer touch-manipulation pointer-events-auto md:w-[120px] lg:w-[150px]"
       >
         <div
           ref={cardRef}
           className={cn(
-            "bg-bg/95 origin-center overflow-hidden rounded-md border-2 shadow-lg transition-transform duration-150 ease-out",
+            "bg-bg/95 origin-center overflow-hidden rounded-md border-2 shadow-lg",
             isAlarmActive && alarmSeverity
               ? cctvAlarmRingClass(alarmSeverity)
               : "border-border",
           )}
-          onPointerEnter={() => {
-            setIsPointerOver(true);
-            setHoveredId(id);
-          }}
-          onPointerLeave={(event) => {
-            const related = event.relatedTarget;
-            if (
-              related instanceof Node &&
-              event.currentTarget.contains(related)
-            ) {
-              return;
-            }
-            resetPointerOver();
-          }}
-          onPointerCancel={resetPointerOver}
         >
           <div className="bg-accent/20 text-text flex items-center gap-1 px-2 py-1 text-xs font-semibold">
             <span>{videoTitle}</span>
@@ -262,7 +245,7 @@ function CctvOverlayMarker({
           </div>
           <div
             ref={setVideoContainer}
-            className="block aspect-video w-full bg-black"
+            className="pointer-events-none block aspect-video w-full bg-black"
           />
         </div>
       </div>
