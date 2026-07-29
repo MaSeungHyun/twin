@@ -27,11 +27,8 @@ function deviceLabel(devices: DeviceMetadata[], deviceId?: string): string | und
   return devices.find((d) => d.deviceId === deviceId)?.label
 }
 
-function makeAlarmId(): string {
-  return `al-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
-}
-
 function buildAlarm(
+  id: string,
   stationId: string,
   config: StationConfig,
   devices: DeviceMetadata[],
@@ -44,7 +41,7 @@ function buildAlarm(
       : undefined
 
   return {
-    id: makeAlarmId(),
+    id,
     stationId,
     type: template.type,
     severity: template.severity,
@@ -229,15 +226,22 @@ export class MockRailwayAdapter implements IRailwayStationAdapter {
     const { config, devices } = bundle
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
     return [
-      buildAlarm(bundle.config.stationId, config, devices, {
-        type: 'CONGESTION_THRESHOLD',
-        severity: 'MEDIUM',
-        zoneId: 'transfer',
-        deviceId: 'cm-003',
-        title: '혼잡 주의',
-        message: '환승통로 혼잡도가 평소보다 다소 높습니다.',
-        congestionPercent: 58,
-      }, fiveMinAgo),
+      buildAlarm(
+        'seed-congestion-transfer',
+        bundle.config.stationId,
+        config,
+        devices,
+        {
+          type: 'CONGESTION_THRESHOLD',
+          severity: 'MEDIUM',
+          zoneId: 'transfer',
+          deviceId: 'cm-003',
+          title: '혼잡 주의',
+          message: '환승통로 혼잡도가 평소보다 다소 높습니다.',
+          congestionPercent: 58,
+        },
+        fiveMinAgo,
+      ),
     ]
   }
 
@@ -355,7 +359,13 @@ export class MockRailwayAdapter implements IRailwayStationAdapter {
     const { config, devices } = bundle
     for (const step of scenarios.scenarios) {
       const timer = setTimeout(() => {
-        const alarm = buildAlarm(config.stationId, config, devices, step.alarm)
+        const alarm = buildAlarm(
+          step.id,
+          config.stationId,
+          config,
+          devices,
+          step.alarm,
+        )
         this.pushAlarm(alarm)
 
         if (step.alarm.type === 'TOILET_EMERGENCY' && step.alarm.deviceId) {

@@ -21,6 +21,7 @@ import transfer2_1080 from "@/assets/video/1080p/transfer2.mp4";
 import transfer3_1080 from "@/assets/video/1080p/transfer3.mp4";
 
 import { isMobileDevice } from "@/lib/device";
+import { CCTV_MARKER_NODE_NAMES } from "@/data/cctvMarkerNodes";
 
 const OFFICE_CAMERA_VIDEO_ORDER = [
   "platform1",
@@ -33,6 +34,14 @@ const OFFICE_CAMERA_VIDEO_ORDER = [
 ] as const;
 
 type VideoId = (typeof OFFICE_CAMERA_VIDEO_ORDER)[number];
+
+/** GLB 카메라 name → 영상 제목(파일명) — 타이틀/소스 공통 */
+const CAMERA_NAME_TO_VIDEO: Record<string, VideoId> = Object.fromEntries(
+  CCTV_MARKER_NODE_NAMES.map((name, index) => [
+    name,
+    OFFICE_CAMERA_VIDEO_ORDER[index % OFFICE_CAMERA_VIDEO_ORDER.length],
+  ]),
+) as Record<string, VideoId>;
 
 const VIDEOS_240 = {
   platform1: platform1_240,
@@ -66,6 +75,11 @@ const VIDEOS_1080 = {
 
 function videoIdAt(index: number): VideoId {
   return OFFICE_CAMERA_VIDEO_ORDER[index % OFFICE_CAMERA_VIDEO_ORDER.length];
+}
+
+function videoIdForCameraName(cameraName: string, fallbackIndex = 0): VideoId {
+  const key = cameraName.trim().toLowerCase();
+  return CAMERA_NAME_TO_VIDEO[key] ?? videoIdAt(fallbackIndex);
 }
 
 const PLATFORM_IDS = [
@@ -117,18 +131,35 @@ export function getCctvPanelVideo(
 }
 
 /** 오버레이 마커 카드용 — 항상 240p */
+export function getCctvMarkerVideoByCameraName(
+  cameraName: string,
+  fallbackIndex = 0,
+): string {
+  return VIDEOS_240[videoIdForCameraName(cameraName, fallbackIndex)];
+}
+
+/** 팝업 확대용 — 데스크톱 1080p / 모바일·태블릿 720p */
+export function getCctvPopupVideoByCameraName(
+  cameraName: string,
+  fallbackIndex = 0,
+): string {
+  const id = videoIdForCameraName(cameraName, fallbackIndex);
+  return isMobileDevice() ? VIDEOS_720[id] : VIDEOS_1080[id];
+}
+
+/** @deprecated index 기반 — 카메라 name 기반 API 사용 */
 export function getCctvMarkerVideoByIndex(index: number): string {
   return VIDEOS_240[videoIdAt(index)];
 }
 
-/** 팝업 확대용 — 데스크톱 1080p / 모바일·태블릿 720p */
+/** @deprecated index 기반 — 카메라 name 기반 API 사용 */
 export function getCctvPopupVideoByIndex(index: number): string {
   const id = videoIdAt(index);
   return isMobileDevice() ? VIDEOS_720[id] : VIDEOS_1080[id];
 }
 
 /**
- * @deprecated 마커는 getCctvMarkerVideoByIndex, 팝업은 getCctvPopupVideoByIndex 사용
+ * @deprecated 마커는 getCctvMarkerVideoByCameraName, 팝업은 getCctvPopupVideoByCameraName 사용
  */
 export function getCctvVideoByIndex(index: number): string {
   return getCctvMarkerVideoByIndex(index);
@@ -139,7 +170,15 @@ export function getOfficeCameraVideoUrls(): readonly string[] {
   return OFFICE_CAMERA_VIDEO_ORDER.map((id) => VIDEOS_240[id]);
 }
 
-/** 마커 제목용 — 비디오 파일명(확장자 제외) */
+/** 마커/팝업 타이틀 — platform1, transfer2 등 영상 파일명 */
+export function getCctvVideoTitleByCameraName(
+  cameraName: string,
+  fallbackIndex = 0,
+): string {
+  return videoIdForCameraName(cameraName, fallbackIndex);
+}
+
+/** @deprecated */
 export function getCctvVideoTitleByIndex(index: number): string {
   return videoIdAt(index);
 }

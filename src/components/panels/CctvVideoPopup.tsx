@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { usePooledCctvVideo } from "@/hooks/usePooledCctvVideo";
+import { useTransientCctvVideo } from "@/hooks/useTransientCctvVideo";
 import {
   cctvAlarmBadgeClass,
   cctvAlarmRingClass,
@@ -19,6 +19,7 @@ export default function CctvVideoPopup() {
   const cameraName = useCctvPopupStore((state) => state.cameraName);
   const statusKey = useCctvPopupStore((state) => state.statusKey);
   const videoSrc = useCctvPopupStore((state) => state.videoSrc);
+  const startTime = useCctvPopupStore((state) => state.startTime);
   const close = useCctvPopupStore((state) => state.close);
 
   const cameraStatus = useCctvCameraStatus(statusKey);
@@ -31,9 +32,9 @@ export default function CctvVideoPopup() {
     null,
   );
 
-  usePooledCctvVideo(videoContainer, videoSrc, isOpen, {
-    className: "block aspect-video w-full bg-black object-contain",
-    controls: true,
+  useTransientCctvVideo(videoContainer, videoSrc, isOpen, {
+    className: "pointer-events-none block aspect-video w-full bg-black object-contain",
+    startTime,
   });
 
   useEffect(() => {

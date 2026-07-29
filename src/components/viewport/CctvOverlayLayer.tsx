@@ -176,19 +176,18 @@ function CctvOverlayMarker({
   }, [isPointerOver, resetPointerOver]);
 
   const handleOpenPopup = useCallback(() => {
-    const markerVideo = acquireCctvVideo(videoSrc);
-    const fullVideo = acquireCctvVideo(videoSrcFull);
+    let startTime = 0;
     try {
-      fullVideo.currentTime = markerVideo.currentTime;
+      startTime = acquireCctvVideo(videoSrc).currentTime;
     } catch {
-      /* seek 불가 시 무시 */
+      /* seek 기준 시각 읽기 실패 시 0 */
     }
     openPopup({
       cameraId: id,
       cameraName: videoTitle,
       statusKey: markerName,
       videoSrc: videoSrcFull,
-      startTime: fullVideo.currentTime,
+      startTime,
     });
   }, [id, markerName, openPopup, videoSrc, videoSrcFull, videoTitle]);
 
@@ -224,8 +223,6 @@ function CctvOverlayMarker({
           onPointerEnter={() => {
             setIsPointerOver(true);
             setHoveredId(id);
-            // 팝업용 고화질 미리 풀에 올려 두기
-            acquireCctvVideo(videoSrcFull);
           }}
           onPointerLeave={(event) => {
             const related = event.relatedTarget;

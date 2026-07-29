@@ -51,16 +51,15 @@ export function acquireCctvVideo(src: string): HTMLVideoElement {
 
 type MountPooledVideoOptions = {
   className?: string;
-  controls?: boolean;
 };
 
 export function mountPooledCctvVideo(
   container: HTMLElement,
   src: string,
-  { className, controls = false }: MountPooledVideoOptions = {},
+  { className }: MountPooledVideoOptions = {},
 ) {
   const video = acquireCctvVideo(src);
-  video.controls = controls;
+  video.controls = false;
   if (className) video.className = className;
   if (video.parentElement !== container) {
     container.replaceChildren(video);
@@ -76,6 +75,55 @@ export function unmountPooledCctvVideo(container: HTMLElement) {
   getPoolRoot()?.appendChild(video);
   /** DOM에 안 보이면 디코드/합성 중단 — 다시 mount 시 ensurePlaying */
   video.pause();
+}
+
+type MountTransientVideoOptions = {
+  className?: string;
+  startTime?: number;
+};
+
+/** 팝업 등 일회성 고화질 — 풀에 넣지 않고 닫을 때 버퍼 해제 */
+export function mountTransientCctvVideo(
+  container: HTMLElement,
+  src: string,
+  { className, startTime = 0 }: MountTransientVideoOptions = {},
+) {
+  const video = document.createElement("video");
+  video.muted = true;
+  video.defaultMuted = true;
+  video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
+  video.loop = true;
+  video.controls = false;
+  video.preload = "auto";
+  if (className) video.className = className;
+  video.src = src;
+
+  if (startTime > 0) {
+    const seek = () => {
+      try {
+        video.currentTime = startTime;
+      } catch {
+        /* seek 불가 시 무시 */
+      }
+    };
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) seek();
+    else video.addEventListener("loadedmetadata", seek, { once: true });
+  }
+
+  container.replaceChildren(video);
+  ensurePlaying(video);
+  return video;
+}
+
+export function destroyTransientCctvVideo(container: HTMLElement) {
+  const video = container.querySelector("video");
+  if (!video) return;
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+  video.remove();
 }
 
 const MOBILE_PRELOAD_STAGGER_MS = 200;
