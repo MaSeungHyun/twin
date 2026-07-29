@@ -14,7 +14,7 @@ const ZONES = [...STATION.config.zones].sort(
 function tagoBadgeForStatus(status: ScheduleStatus) {
   switch (status) {
     case "fresh":
-      return { label: "Live · TAGO", className: "hud-badge--live" };
+      return { label: "Live", className: "hud-badge--live" };
     case "stale":
       return { label: "TAGO delayed", className: "hud-badge--warn" };
     case "error":
@@ -75,7 +75,7 @@ export function HeaderBar() {
         >
           {videoQuality}
         </span>
-        <span className="hud-badge hud-badge--muted">Mock · CCTV</span>
+        <span className="hud-badge hud-badge--muted">CCTV</span>
       </div>
     </header>
   );

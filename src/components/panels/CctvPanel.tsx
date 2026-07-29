@@ -1,205 +1,124 @@
-import { useMemo, useRef, useState } from 'react'
+import { useRef } from 'react'
 
-import { getStationBundle } from '@/data/stations/registry'
+import {
+  getCctvPanelVideo,
+  resolveOfficeCameraVideoId,
+} from '@/data/officeCameraVideos'
 import { useVideoStream } from '@/hooks/useVideoStream'
-import { shortCameraLabel } from '@/lib/cctvContext'
-import { matchesZoneFilter } from '@/lib/zones'
-import { cn } from '@/lib/utils'
+import { acquireCctvVideo } from '@/lib/cctvVideoPool'
 import { useDeviceStore, type DeviceRuntime } from '@/stores/deviceStore'
+import { useCctvPopupStore } from '@/stores/cctvPopupStore'
 import { useUiStore } from '@/stores/uiStore'
-import { focusDevice as bridgeFocusDevice } from '@/three/engine/engineBridge'
 
-const ZONE_NAMES = Object.fromEntries(
-  getStationBundle('SEOUL').config.zones.map((z) => [z.zoneId, z.name]),
-)
-
-function statusLabel(status: string): string {
-  switch (status) {
-    case 'CONNECTING':
-      return '연결 중'
-    case 'OFFLINE':
-      return '오프라인'
-    case 'ERROR':
-      return '오류'
-    default:
-      return 'Live'
-  }
-}
-
+/** 소켓/원격 streamUrl 대신 로컬 데모 영상 매핑 대상 */
 function isCamera(device: DeviceRuntime): boolean {
-  return device.category !== 'restroom' && Boolean(device.streamUrl)
+  return device.category === 'congestion' || device.category === 'safety-line'
 }
 
-function thumbnailFor(device: DeviceRuntime): string | undefined {
-  if (device.thumbnailUrl) return device.thumbnailUrl
-  if (!device.streamUrl) return undefined
-  return device.streamUrl.replace(/\.mp4(\?.*)?$/i, '.jpg')
+function localVideoTitle(device: DeviceRuntime): string {
+  return resolveOfficeCameraVideoId(device.deviceId, device.zoneId)
 }
 
-function CctvTileImage({ src, label }: { src?: string; label: string }) {
-  const [failed, setFailed] = useState(false)
-  if (!src || failed) {
-    return <span className="cctv-tile__placeholder">{label}</span>
-  }
+function ExpandIcon() {
   return (
-    <img
-      src={src}
-      alt=""
-      className="cctv-tile__img"
-      onError={() => setFailed(true)}
-    />
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <polyline points="15 3 21 3 21 9" />
+      <polyline points="9 21 3 21 3 15" />
+      <line x1="21" y1="3" x2="14" y2="10" />
+      <line x1="3" y1="21" x2="10" y2="14" />
+    </svg>
   )
 }
 
 export function CctvPanel() {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const selectedZoneId = useUiStore((s) => s.selectedZoneId)
   const selectedDeviceId = useUiStore((s) => s.selectedDeviceId)
-  const setSelectedDeviceId = useUiStore((s) => s.setSelectedDeviceId)
-  const cctvExpanded = useUiStore((s) => s.cctvExpanded)
   const byId = useDeviceStore((s) => s.byId)
+  const openPopup = useCctvPopupStore((s) => s.open)
 
-  const cameras = useMemo(() => {
-    return Object.values(byId)
-      .filter(isCamera)
-      .filter((device) => matchesZoneFilter(device.zoneId, selectedZoneId))
-      .sort((a, b) => a.displayOrder - b.displayOrder)
-  }, [byId, selectedZoneId])
+  const mainDevice =
+    selectedDeviceId && byId[selectedDeviceId] && isCamera(byId[selectedDeviceId])
+      ? byId[selectedDeviceId]
+      : undefined
 
-  const mainDevice = selectedDeviceId ? byId[selectedDeviceId] : undefined
-  const hasPlayer = Boolean(mainDevice && isCamera(mainDevice))
-  const mainInFilter =
-    mainDevice && isCamera(mainDevice)
-      ? matchesZoneFilter(mainDevice.zoneId, selectedZoneId)
-      : false
+  const localSrc = mainDevice
+    ? getCctvPanelVideo(mainDevice.deviceId, mainDevice.zoneId)
+    : undefined
+  const videoTitle = mainDevice ? localVideoTitle(mainDevice) : ''
 
-  const streamEnabled = Boolean(
-    mainDevice?.streamUrl &&
-      (mainDevice.cctvStatus === 'ONLINE' || mainDevice.cctvStatus === 'CONNECTING'),
-  )
+  useVideoStream(videoRef, localSrc, Boolean(localSrc))
 
-  useVideoStream(videoRef, mainDevice?.streamUrl, streamEnabled && Boolean(mainDevice))
+  const handleExpand = () => {
+    if (!mainDevice || !localSrc) return
 
-  const zoneLabel =
-    selectedZoneId === 'overview' ? '전체' : (ZONE_NAMES[selectedZoneId] ?? selectedZoneId)
-  const showZoneOnTile = selectedZoneId === 'overview'
+    let startTime = videoRef.current?.currentTime ?? 0
+    try {
+      const pooled = acquireCctvVideo(localSrc)
+      if (videoRef.current) {
+        pooled.currentTime = videoRef.current.currentTime
+        startTime = pooled.currentTime
+      }
+    } catch {
+      /* seek 불가 시 무시 */
+    }
 
-  const selectCamera = (deviceId: string) => {
-    setSelectedDeviceId(deviceId)
-    bridgeFocusDevice(deviceId)
+    openPopup({
+      cameraId: mainDevice.deviceId,
+      cameraName: videoTitle,
+      statusKey: videoTitle,
+      videoSrc: localSrc,
+      startTime,
+    })
   }
 
-  const clearSelection = () => setSelectedDeviceId(null)
+  if (!mainDevice || !localSrc) {
+    return (
+      <div className="panel-empty panel-empty--compact">
+        <p className="panel-empty__title">영상 없음</p>
+        <p className="panel-empty__hint">
+          알람을 선택하면 해당 CCTV 영상이 여기에 표시됩니다.
+        </p>
+      </div>
+    )
+  }
 
   return (
-    <div
-      className={cn(
-        'cctv-panel',
-        cctvExpanded && 'cctv-panel--expanded',
-        cctvExpanded && hasPlayer && 'cctv-panel--split',
-      )}
-    >
-      <div className="cctv-panel__header">
-        <div className="cctv-panel__header-text">
-          <span className="cctv-panel__meta">
-            {zoneLabel} · {cameras.length}대
-            {cctvExpanded ? ' · 확장' : ''}
-          </span>
-        </div>
-        {hasPlayer && (
-          <button type="button" className="cctv-panel__clear" onClick={clearSelection}>
-            목록만
+    <div className="cctv-panel cctv-panel--viewer">
+      <div className="cctv-panel__player">
+        <p className="cctv-panel__player-title">
+          {mainDevice.label}
+          <span className="cctv-panel__player-file"> · {videoTitle}</span>
+        </p>
+        <div className="cctv-panel__main">
+          <video
+            ref={videoRef}
+            className="cctv-panel__video"
+            muted
+            playsInline
+            loop
+            aria-label={mainDevice.label}
+          />
+          <button
+            type="button"
+            className="cctv-panel__expand"
+            onClick={handleExpand}
+            aria-label="크게 보기"
+            title="크게 보기"
+          >
+            <ExpandIcon />
           </button>
-        )}
+        </div>
       </div>
-
-      {hasPlayer && mainDevice && (
-        <div className="cctv-panel__player">
-          <div className="cctv-panel__player-head">
-            <span className="cctv-panel__player-title">{mainDevice.label}</span>
-            <span
-              className={cn(
-                'cctv-panel__status',
-                mainDevice.cctvStatus !== 'ONLINE' && 'cctv-panel__status--warn',
-              )}
-            >
-              {statusLabel(mainDevice.cctvStatus)}
-            </span>
-          </div>
-          <div className="cctv-panel__main">
-            {streamEnabled ? (
-              <video
-                ref={videoRef}
-                className="cctv-panel__video"
-                muted
-                playsInline
-                controls
-                aria-label={mainDevice.label}
-              />
-            ) : (
-              <div className="cctv-panel__placeholder">
-                <p>{mainDevice.label}</p>
-                <p className="cctv-panel__placeholder-hint">
-                  {mainDevice.cctvStatus === 'OFFLINE'
-                    ? '카메라 오프라인 — 스트림 없음'
-                    : 'Mock 영상 없음 (public/mock/cctv/)'}
-                </p>
-              </div>
-            )}
-          </div>
-          {!mainInFilter && (
-            <p className="cctv-panel__filter-note">
-              현재 구역 필터 밖 카메라입니다. 상단에서 「전체」를 선택하면 목록에 표시됩니다.
-            </p>
-          )}
-        </div>
-      )}
-
-      {cameras.length === 0 ? (
-        <div className="panel-empty">
-          <p className="panel-empty__title">카메라 없음</p>
-          <p className="panel-empty__hint">
-            이 구역에 표시할 CCTV가 없습니다. 상단에서 다른 구역을 선택해 보세요.
-          </p>
-        </div>
-      ) : (
-        <div className="cctv-grid" role="list">
-          {cameras.map((device) => {
-            const active = selectedDeviceId === device.deviceId
-            const offline = device.cctvStatus !== 'ONLINE'
-            return (
-              <button
-                key={device.deviceId}
-                type="button"
-                role="listitem"
-                className={cn('cctv-tile', active && 'cctv-tile--active')}
-                onClick={() => selectCamera(device.deviceId)}
-                aria-pressed={active}
-                aria-label={device.label}
-              >
-                <div className="cctv-tile__frame">
-                  <CctvTileImage
-                    src={thumbnailFor(device)}
-                    label={shortCameraLabel(device.label)}
-                  />
-                  {offline && (
-                    <span className="cctv-tile__badge">{statusLabel(device.cctvStatus)}</span>
-                  )}
-                  {active && <span className="cctv-tile__live">재생 중</span>}
-                </div>
-                <div className="cctv-tile__meta">
-                  <span className="cctv-tile__name">{shortCameraLabel(device.label)}</span>
-                  {showZoneOnTile && (
-                    <span className="cctv-tile__zone">
-                      {ZONE_NAMES[device.zoneId] ?? device.zoneId}
-                    </span>
-                  )}
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      )}
     </div>
   )
 }

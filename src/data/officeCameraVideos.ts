@@ -68,6 +68,54 @@ function videoIdAt(index: number): VideoId {
   return OFFICE_CAMERA_VIDEO_ORDER[index % OFFICE_CAMERA_VIDEO_ORDER.length];
 }
 
+const PLATFORM_IDS = [
+  "platform1",
+  "platform2",
+  "platform3",
+  "platform4",
+] as const satisfies readonly VideoId[];
+
+const TRANSFER_IDS = [
+  "transfer1",
+  "transfer2",
+  "transfer3",
+] as const satisfies readonly VideoId[];
+
+/**
+ * devices.json ID → 로컬 영상 키
+ * - sld-00N (플랫폼) → platform1~4
+ * - cm-00N (환승) → transfer1~3
+ */
+export function resolveOfficeCameraVideoId(
+  deviceId: string,
+  zoneId?: string,
+): VideoId {
+  const sld = /^sld-(\d+)$/i.exec(deviceId);
+  if (sld) {
+    const n = Number.parseInt(sld[1], 10);
+    return PLATFORM_IDS[(Math.max(n, 1) - 1) % PLATFORM_IDS.length];
+  }
+
+  const cm = /^cm-(\d+)$/i.exec(deviceId);
+  if (cm) {
+    const n = Number.parseInt(cm[1], 10);
+    return TRANSFER_IDS[(Math.max(n, 1) - 1) % TRANSFER_IDS.length];
+  }
+
+  if (zoneId === "platform-56") return "platform1";
+  if (zoneId === "transfer") return "transfer1";
+  return "platform1";
+}
+
+/** CCTV 패널 메인 — 데스크톱 1080p / 모바일·태블릿 720p */
+export function getCctvPanelVideo(
+  deviceId: string,
+  zoneId?: string,
+): string {
+  const id = resolveOfficeCameraVideoId(deviceId, zoneId);
+  return isMobileDevice() ? VIDEOS_720[id] : VIDEOS_1080[id];
+}
+
 /** 오버레이 마커 카드용 — 항상 240p */
 export function getCctvMarkerVideoByIndex(index: number): string {
   return VIDEOS_240[videoIdAt(index)];

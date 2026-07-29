@@ -61,20 +61,6 @@ export function BottomDock() {
       >
         <span className="hud-dock__label">전광판</span>
       </button>
-
-      <span className="hud-dock__divider" aria-hidden />
-
-      <button
-        type="button"
-        className={cn(
-          'hud-dock__btn',
-          rightPanelOpen && rightPanelMode === 'cctv' && 'hud-dock__btn--active',
-        )}
-        onClick={() => openRight('cctv')}
-        aria-pressed={rightPanelOpen && rightPanelMode === 'cctv'}
-      >
-        <span className="hud-dock__label">CCTV</span>
-      </button>
     </nav>
   )
 }

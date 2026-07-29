@@ -29,12 +29,12 @@ export function useAlarms() {
     })
 
     void railwayAdapter.getActiveAlarms(STATION_ID).then((snapshot) => {
-      setAll(mergeById(snapshot, pending))
+      const items = mergeById(snapshot, pending)
+      setAll(items)
       snapshotReady = true
-      for (const event of pending.splice(0)) {
-        upsert(event)
-        maybeOpenPanel(event)
-      }
+      pending.splice(0)
+      // 초기 스냅샷에 미확인 알람이 있으면 push 때와 같이 패널 열기
+      openPanelIfUnacked(items)
     })
 
     return () => {
@@ -44,11 +44,20 @@ export function useAlarms() {
   }, [setAll, upsert])
 }
 
+function openLeftPanel() {
+  if (useUiStore.getState().leftPanelOpen) return
+  useUiStore.setState({ leftPanelOpen: true })
+}
+
+/** 실시간 push — 긴급·높음만 자동 펼침 */
 function maybeOpenPanel(event: AlarmEvent) {
   if (event.acknowledgedAt) return
   if (event.severity !== 'CRITICAL' && event.severity !== 'HIGH') return
+  openLeftPanel()
+}
 
-  const ui = useUiStore.getState()
-  if (ui.leftPanelOpen) return
-  useUiStore.setState({ leftPanelOpen: true })
+/** 초기 스냅샷 — 미확인 알람이 하나라도 있으면 펼침 */
+function openPanelIfUnacked(items: AlarmEvent[]) {
+  if (!items.some((event) => !event.acknowledgedAt)) return
+  openLeftPanel()
 }

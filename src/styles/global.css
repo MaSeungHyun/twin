@@ -382,7 +382,54 @@ body {
 }
 
 .overlay-panel--open.overlay-panel--wide {
-  width: min(22.4rem, calc(100vw - 2.3rem));
+  width: min(32.3rem, calc(100vw - 2.3rem));
+}
+
+/* 데모 CCTV 뷰어 — 하단 정렬 + 헤더 드래그 */
+.overlay-panel--compact {
+  top: auto;
+  bottom: var(--shell-bottom);
+  height: auto;
+  max-height: calc(100dvh - var(--shell-top) - var(--shell-bottom) - 0.5rem);
+  align-items: flex-end;
+  will-change: transform;
+}
+
+.overlay-panel--compact.overlay-panel--dragging {
+  z-index: 5;
+  user-select: none;
+}
+
+.overlay-panel--compact .overlay-panel__glass {
+  height: auto;
+  flex: 0 1 auto;
+}
+
+.overlay-panel--compact .overlay-panel__header {
+  padding: 0.55rem 0.65rem 0.5rem 0.75rem;
+}
+
+.overlay-panel__header--drag {
+  cursor: grab;
+  touch-action: none;
+}
+
+.overlay-panel--dragging .overlay-panel__header--drag {
+  cursor: grabbing;
+}
+
+.overlay-panel--compact .overlay-panel__close {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.55rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.overlay-panel--compact .overlay-panel__content {
+  flex: 0 1 auto;
+  padding: 0.55rem 0.7rem 0.7rem;
+  overflow: visible;
 }
 
 .overlay-panel--open.overlay-panel--expanded {
@@ -1112,6 +1159,23 @@ body {
   flex-shrink: 0;
 }
 
+.cctv-panel--viewer {
+  flex: 0 0 auto;
+  gap: 0;
+  overflow: visible;
+  min-height: 0;
+}
+
+.cctv-panel--viewer .cctv-panel__player {
+  gap: 0.35rem;
+}
+
+.cctv-panel--viewer .cctv-panel__player-title {
+  margin: 0;
+  padding: 0 0.05rem;
+  font-size: 0.74rem;
+}
+
 .cctv-panel__player-head {
   display: flex;
   align-items: center;
@@ -1125,6 +1189,43 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cctv-panel__player-file {
+  font-weight: 400;
+  color: var(--color-text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.cctv-panel__expand {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin: 0;
+  padding: 0;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(8, 10, 14, 0.62);
+  color: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.cctv-panel__expand:hover {
+  background: rgba(77, 163, 255, 0.35);
+  border-color: rgba(122, 162, 255, 0.55);
+  transform: scale(1.04);
+}
+
+.cctv-panel__expand:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .cctv-panel__status {
@@ -1510,7 +1611,7 @@ body {
   }
 
   .overlay-panel--open.overlay-panel--wide {
-    width: min(19.6rem, calc(100vw - 1.5rem));
+    width: min(28.2rem, calc(100vw - 1.5rem));
   }
 
   .overlay-panel--open.overlay-panel--expanded {

@@ -19,7 +19,6 @@ export function ControlShell() {
   const cctvExpanded = useUiStore((s) => s.cctvExpanded);
   const toggleLeftPanel = useUiStore((s) => s.toggleLeftPanel);
   const toggleRightPanel = useUiStore((s) => s.toggleRightPanel);
-  const toggleCctvExpanded = useUiStore((s) => s.toggleCctvExpanded);
   const dismissFocus = useUiStore((s) => s.dismissFocus);
 
   const isCctv = rightPanelMode === "cctv";
@@ -72,8 +71,7 @@ export function ControlShell() {
           onClose={toggleRightPanel}
           title={rightPanelTitle(rightPanelMode)}
           wide={isCctv}
-          expanded={isCctv && cctvExpanded}
-          onToggleExpand={isCctv ? toggleCctvExpanded : undefined}
+          compact={isCctv}
         >
           <RightPanel />
         </OverlayPanel>
