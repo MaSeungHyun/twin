@@ -12,8 +12,10 @@ import {
 
 import type { CctvAlarmSeverity } from "@/lib/cctvAlarm";
 import { isCctvAlarmSeverity } from "@/lib/cctvAlarm";
+import { matchesCctvMarkerZone } from "@/lib/zones";
 import { useOfficeStore } from "@/stores/officeStore";
 import { getCctvCameraStatus } from "@/stores/cctvCameraStatusStore";
+import { useUiStore } from "@/stores/uiStore";
 import type { CctvMarkerSource } from "@/three/cctvMarkers";
 import {
   HEATMAP_EMISSIVE_HEX,
@@ -94,6 +96,9 @@ export default function CctvFloorHeatmap({
 }: CctvFloorHeatmapProps) {
   const activeFloorAction = useOfficeStore((s) => s.activeFloorAction);
   const floorCommand = useOfficeStore((s) => s.floorCommand);
+  const selectedZoneId = useUiStore((s) => s.selectedZoneId);
+  const selectedZoneIdRef = useRef(selectedZoneId);
+  selectedZoneIdRef.current = selectedZoneId;
   const entriesRef = useRef<FloorEntry[]>([]);
   const sharedGeoRef = useRef<PlaneGeometry | null>(null);
 
@@ -196,8 +201,12 @@ export default function CctvFloorHeatmap({
 
       for (const disc of discs) {
         const { stamp, mesh, material } = disc;
+        const zoneOk = matchesCctvMarkerZone(
+          stamp.videoTitle,
+          selectedZoneIdRef.current,
+        );
         const status = getCctvCameraStatus(stamp.cameraName);
-        if (!isCctvAlarmSeverity(status)) {
+        if (!zoneOk || !isCctvAlarmSeverity(status)) {
           if (disc.lastSeverity !== "safe") {
             mesh.visible = false;
             disc.lastSeverity = "safe";

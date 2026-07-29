@@ -8,6 +8,7 @@ import {
 } from "three";
 
 import type { CctvAlarmSeverity } from "@/lib/cctvAlarm";
+import { getCctvVideoTitleByCameraName } from "@/data/officeCameraVideos";
 import { getOfficeFloorInstanceRegistry } from "@/three/officeFloorInstancing";
 import type { OfficeFloorObjectKey } from "@/three/officeFloorVisibility";
 
@@ -33,6 +34,8 @@ export type FloorHeatmapBounds = {
 
 export type HeatmapStamp = {
   cameraName: string;
+  /** platform1 / transfer2 — 상단 구역 필터용 */
+  videoTitle: string;
   x: number;
   z: number;
   /** 깜빡임 위상 오프셋 */
@@ -169,6 +172,7 @@ export function collectHeatmapStampsForFloor(
     boundsSpace.worldToLocal(_v);
     stamps.push({
       cameraName: marker.name,
+      videoTitle: getCctvVideoTitleByCameraName(marker.name),
       x: _v.x,
       z: _v.z,
       phase: (stamps.length * 1.7) % (Math.PI * 2),
