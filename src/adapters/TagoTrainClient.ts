@@ -18,13 +18,18 @@ import type { TagoTrainRow } from '@/types/tago'
 type QueryParams = Record<string, string | number | undefined>
 
 function buildTagoUrl(operation: string, params: QueryParams): string {
-  const key = formatTagoServiceKey(readTagoServiceKeyFromEnv())
   const parts = [
-    `serviceKey=${key}`,
     '_type=json',
     `numOfRows=${params.numOfRows ?? 100}`,
     `pageNo=${params.pageNo ?? 1}`,
   ]
+
+  // Local Vite dev still uses the browser-side key because Vercel API routes
+  // are not available there. Production requests are signed server-side.
+  if (import.meta.env.DEV) {
+    const key = formatTagoServiceKey(readTagoServiceKeyFromEnv())
+    parts.unshift(`serviceKey=${key}`)
+  }
 
   for (const [name, value] of Object.entries(params)) {
     if (value === undefined || name === 'numOfRows' || name === 'pageNo') continue

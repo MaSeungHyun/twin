@@ -94,10 +94,7 @@ function OfficeModel() {
     return () => clearOverlayMarkers();
   }, [cctvMarkers, clearOverlayMarkers, setOverlayMarkers]);
 
-  const floorObjects = useMemo(
-    () => collectOfficeFloorObjects(scene),
-    [scene],
-  );
+  const floorObjects = useMemo(() => collectOfficeFloorObjects(scene), [scene]);
 
   useEffect(() => {
     setModelProgress(100);
@@ -127,12 +124,7 @@ function OfficeModel() {
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [
-    floorObjects,
-    scene,
-    setActiveFloorAction,
-    setAvailableFloorActions,
-  ]);
+  }, [floorObjects, scene, setActiveFloorAction, setAvailableFloorActions]);
 
   useEffect(() => {
     return () => {
@@ -168,11 +160,7 @@ function OfficeModel() {
         floorObjects={floorObjects}
       />
       {cctvMarkers.map((marker) => (
-        <CctvAnchorBinder
-          key={marker.id}
-          id={marker.id}
-          anchor={marker.node}
-        />
+        <CctvAnchorBinder key={marker.id} id={marker.id} anchor={marker.node} />
       ))}
     </group>
   );

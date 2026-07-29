@@ -41,12 +41,12 @@ export default function ViewportScene() {
         />
       </EffectComposer>
 
-      {/* {import.meta.env.DEV ? ( */}
-      <StatsGl
-        className="pointer-events-none absolute top-18 right-4 z-2"
-        trackGPU
-      />
-      {/* ) : null} */}
+      {import.meta.env.DEV ? (
+        <StatsGl
+          className="pointer-events-none absolute top-18 right-4 z-2"
+          trackGPU
+        />
+      ) : null}
     </Canvas>
   );
 }

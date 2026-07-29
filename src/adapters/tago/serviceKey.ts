@@ -7,7 +7,7 @@ export function formatTagoServiceKey(raw: string): string {
 export function readTagoServiceKeyFromEnv(): string {
   const raw = import.meta.env.VITE_TAGO_SERVICE_KEY?.trim()
   if (!raw) {
-    throw new Error('Set VITE_TAGO_SERVICE_KEY in .env')
+    throw new Error('Set VITE_TAGO_SERVICE_KEY in local .env')
   }
   return raw
 }

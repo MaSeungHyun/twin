@@ -99,10 +99,7 @@ function CctvOverlayMarker({
     const svg = linesSvgRef?.current;
     if (!root || !panel || !svg) return;
 
-    const line = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line",
-    );
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     line.setAttribute("stroke", cctvLeaderLineStroke("safe"));
     line.setAttribute("stroke-width", "1.5");
     line.setAttribute("stroke-linecap", "round");
@@ -224,7 +221,6 @@ function CctvOverlayMarker({
               ? cctvAlarmRingClass(alarmSeverity)
               : "border-border",
           )}
-          style={{ transform: isPointerOver ? "scale(1.5)" : "scale(1)" }}
           onPointerEnter={() => {
             setIsPointerOver(true);
             setHoveredId(id);

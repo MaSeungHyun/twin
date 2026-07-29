@@ -75,7 +75,7 @@ export function HeaderBar() {
         >
           {videoQuality}
         </span>
-        <span className="hud-badge hud-badge--muted">CCTV</span>
+        <span className="hud-badge hud-badge--live">CCTV</span>
       </div>
     </header>
   );
