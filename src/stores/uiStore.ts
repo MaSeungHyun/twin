@@ -90,7 +90,6 @@ export const useUiStore = create<UiState>((set) => ({
     set({
       selectedAlarmId: alarm.id,
       selectedDeviceId: alarm.deviceId ?? null,
-      selectedZoneId: alarm.zoneId,
       leftPanelOpen: true,
       rightPanelMode,
       rightPanelOpen: true,
