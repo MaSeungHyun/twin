@@ -3,7 +3,7 @@ import Viewport from "./components/viewport/Viewport";
 
 export default function App() {
   return (
-    <main className="relative w-screen h-dvh max-w-sceen max-h-dvh min-h-dvh overflow-hidden">
+    <main className="relative h-full w-full overflow-hidden">
       <ControlShell />
       <Viewport />
     </main>
