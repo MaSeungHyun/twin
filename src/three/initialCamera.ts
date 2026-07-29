@@ -1,12 +1,12 @@
 import { Quaternion, Vector3 } from "three";
 
 export const INITIAL_CAMERA_POSITION: [number, number, number] = [
-  15.814, 43.578, 48.054,
+  22.524, 22.278, 52.054,
 ];
 
 /** x, y, z, w */
 export const INITIAL_CAMERA_QUATERNION: [number, number, number, number] = [
-  -0.261, 0.224, 0.062, 0.936,
+  -0.098, 0.251, 0.0256, 0.926,
 ];
 
 export const INITIAL_CAMERA_LOOK_DISTANCE = 45;

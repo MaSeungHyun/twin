@@ -208,6 +208,28 @@ export function animateOfficeFloorLayout(
   return timeline;
 }
 
+/** 애니메이션 없이 즉시 층 상태 적용 (초기값용) */
+export function snapOfficeFloorLayout(
+  layout: OfficeFloorLayout,
+  actionId: OfficeFloorActionId,
+) {
+  layout.timeline?.kill();
+  layout.timeline = null;
+  killFloorTweens(layout.objects);
+
+  if (actionId === "Default") {
+    for (const [key, object] of layout.objects) {
+      object.position.y = layout.originals[key];
+    }
+  } else {
+    for (const [key, object] of layout.objects) {
+      object.position.y = resolveFloorTargetY(layout, actionId, key);
+    }
+  }
+
+  applyOfficeFloorVisibility(layout.root, layout.objects, actionId);
+}
+
 export function disposeOfficeFloorLayout(layout: OfficeFloorLayout | null) {
   layout?.timeline?.kill();
 }

@@ -33,8 +33,8 @@ interface UiState {
 }
 
 export const useUiStore = create<UiState>((set) => ({
-  leftPanelOpen: false,
-  rightPanelOpen: false,
+  leftPanelOpen: true,
+  rightPanelOpen: true,
   rightPanelMode: "schedule",
   cctvExpanded: false,
   selectedZoneId: "overview",

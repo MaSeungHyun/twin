@@ -20,6 +20,7 @@ import {
   createOfficeFloorLayout,
   disposeOfficeFloorLayout,
   getAvailableFloorActions,
+  snapOfficeFloorLayout,
   type OfficeFloorLayout,
 } from "@/three/officeFloorGsap";
 import {
@@ -125,8 +126,15 @@ function OfficeModel() {
       const layout = createOfficeFloorLayout(scene, floorObjects);
       floorLayoutRef.current = layout;
 
-      setAvailableFloorActions(getAvailableFloorActions(floorObjects));
-      setActiveFloorAction(layout ? "Default" : null);
+      const available = getAvailableFloorActions(floorObjects);
+      setAvailableFloorActions(available);
+
+      if (layout && available.includes("1F")) {
+        snapOfficeFloorLayout(layout, "1F");
+        setActiveFloorAction("1F");
+      } else {
+        setActiveFloorAction(layout ? "Default" : null);
+      }
     });
 
     return () => {
