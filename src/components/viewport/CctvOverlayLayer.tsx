@@ -23,6 +23,7 @@ import {
 } from "@/lib/cctvHtmlLayout";
 import { acquireCctvVideo } from "@/lib/cctvVideoPool";
 import { cn } from "@/lib/utils";
+import { matchesCctvMarkerZone } from "@/lib/zones";
 import { useCctvAlarmActive, useCctvAlarmStore } from "@/stores/cctvAlarmStore";
 import { useCctvCameraStatus } from "@/stores/cctvCameraStatusStore";
 import { useCctvMarkerHoverStore } from "@/stores/cctvMarkerHoverStore";
@@ -32,20 +33,24 @@ import {
 } from "@/stores/cctvOverlayStore";
 import { useCctvPopupStore } from "@/stores/cctvPopupStore";
 import { useOfficeStore } from "@/stores/officeStore";
+import { useUiStore } from "@/stores/uiStore";
 
 const CctvLinesSvgContext =
   createContext<RefObject<SVGSVGElement | null> | null>(null);
 
-function useMarkerVisibleByFloor(floor: CctvOverlayMarkerDef["floor"]) {
-  return useOfficeStore((state) => {
+/** 층 뷰 + 헤더 구역 칩(overview / transfer / platform) */
+function useMarkerVisible(
+  floor: CctvOverlayMarkerDef["floor"],
+  videoTitle: string,
+) {
+  const selectedZoneId = useUiStore((s) => s.selectedZoneId);
+  const floorOk = useOfficeStore((state) => {
     if (state.floorCommand !== null) return false;
-    return (
-      state.activeFloorAction != null &&
-      state.activeFloorAction !== "Default" &&
-      floor != null &&
-      state.activeFloorAction === floor
-    );
+    if (state.activeFloorAction == null) return false;
+    if (state.activeFloorAction === "Default") return true;
+    return floor != null && state.activeFloorAction === floor;
   });
+  return floorOk && matchesCctvMarkerZone(videoTitle, selectedZoneId);
 }
 
 function CctvOverlayMarker({
@@ -68,7 +73,7 @@ function CctvOverlayMarker({
 
   const cameraStatus = useCctvCameraStatus(markerName);
   const alarmSeverity = isCctvAlarmSeverity(cameraStatus) ? cameraStatus : null;
-  const markerVisibleByFloor = useMarkerVisibleByFloor(floor);
+  const markerVisible = useMarkerVisible(floor, videoTitle);
   const isAlarmActive = useCctvAlarmActive(id) && alarmSeverity != null;
   const dismissAlarm = useCctvAlarmStore((s) => s.dismiss);
   const openPopup = useCctvPopupStore((s) => s.open);
@@ -78,8 +83,8 @@ function CctvOverlayMarker({
   const clearHoveredId = useCctvMarkerHoverStore((s) => s.clearHoveredId);
 
   const hostsVideo =
-    markerVisibleByFloor && !(isPopupOpen && popupCameraId === id);
-  const showMarker = markerVisibleByFloor && !isPopupOpen;
+    markerVisible && !(isPopupOpen && popupCameraId === id);
+  const showMarker = markerVisible && !isPopupOpen;
 
   usePooledCctvVideo(videoContainer, videoSrc, hostsVideo, {
     className:
@@ -145,11 +150,11 @@ function CctvOverlayMarker({
   }, [isPointerOver, showMarker]);
 
   useEffect(() => {
-    if (!markerVisibleByFloor) {
+    if (!markerVisible) {
       clearHoveredId(id);
       updateCctvHtmlMarker(id, { active: false });
     }
-  }, [clearHoveredId, id, markerVisibleByFloor]);
+  }, [clearHoveredId, id, markerVisible]);
 
   const resetPointerOver = useCallback(() => {
     setIsPointerOver(false);
@@ -176,19 +181,18 @@ function CctvOverlayMarker({
   }, [isPointerOver, resetPointerOver]);
 
   const handleOpenPopup = useCallback(() => {
-    const markerVideo = acquireCctvVideo(videoSrc);
-    const fullVideo = acquireCctvVideo(videoSrcFull);
+    let startTime = 0;
     try {
-      fullVideo.currentTime = markerVideo.currentTime;
+      startTime = acquireCctvVideo(videoSrc).currentTime;
     } catch {
-      /* seek 불가 시 무시 */
+      /* seek 기준 시각 읽기 실패 시 0 */
     }
     openPopup({
       cameraId: id,
       cameraName: videoTitle,
       statusKey: markerName,
       videoSrc: videoSrcFull,
-      startTime: fullVideo.currentTime,
+      startTime,
     });
   }, [id, markerName, openPopup, videoSrc, videoSrcFull, videoTitle]);
 
@@ -224,8 +228,6 @@ function CctvOverlayMarker({
           onPointerEnter={() => {
             setIsPointerOver(true);
             setHoveredId(id);
-            // 팝업용 고화질 미리 풀에 올려 두기
-            acquireCctvVideo(videoSrcFull);
           }}
           onPointerLeave={(event) => {
             const related = event.relatedTarget;

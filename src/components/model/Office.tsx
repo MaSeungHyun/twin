@@ -3,10 +3,11 @@ import { useGLTF } from "@react-three/drei";
 import { Group } from "three";
 
 import model from "@/assets/model/Seperate_Office.glb";
+import { getCctvMarkerAlarmAliases } from "@/data/cctvMarkerAlarmAliases";
 import {
-  getCctvMarkerVideoByIndex,
-  getCctvPopupVideoByIndex,
-  getCctvVideoTitleByIndex,
+  getCctvMarkerVideoByCameraName,
+  getCctvPopupVideoByCameraName,
+  getCctvVideoTitleByCameraName,
 } from "@/data/officeCameraVideos";
 import { useInitialLoadStore } from "@/stores/initialLoadStore";
 import { useCctvCameraStatusStore } from "@/stores/cctvCameraStatusStore";
@@ -75,9 +76,16 @@ function OfficeModel() {
   const cctvMarkers = useMemo(() => collectCctvMarkers(scene), [scene]);
 
   useEffect(() => {
-    useCctvCameraStatusStore
-      .getState()
-      .registerCameras(cctvMarkers.map((m) => m.name));
+    const statusStore = useCctvCameraStatusStore.getState();
+    statusStore.registerCameras(cctvMarkers.map((m) => m.name));
+    // 알람 id === 카메라 name 이면 상태가 바로 반영된다
+    for (const marker of cctvMarkers) {
+      statusStore.registerCameraAliases(marker.name, [
+        marker.id,
+        marker.name,
+        ...getCctvMarkerAlarmAliases(marker.name),
+      ]);
+    }
   }, [cctvMarkers]);
 
   useEffect(() => {
@@ -86,9 +94,9 @@ function OfficeModel() {
         id: marker.id,
         markerName: marker.name,
         floor: marker.floor,
-        videoTitle: getCctvVideoTitleByIndex(index),
-        videoSrc: getCctvMarkerVideoByIndex(index),
-        videoSrcFull: getCctvPopupVideoByIndex(index),
+        videoTitle: getCctvVideoTitleByCameraName(marker.name, index),
+        videoSrc: getCctvMarkerVideoByCameraName(marker.name, index),
+        videoSrcFull: getCctvPopupVideoByCameraName(marker.name, index),
       })),
     );
     return () => clearOverlayMarkers();

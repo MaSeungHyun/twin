@@ -7,6 +7,7 @@ import OfficeUI from "@/components/model/OfficeUI";
 import { AlarmPanel } from "@/components/panels/AlarmPanel";
 import { RightPanel, rightPanelTitle } from "@/components/panels/RightPanel";
 import { useAlarms } from "@/hooks/useAlarms";
+import { useCctvAlarmStatusSync } from "@/hooks/useCctvAlarmStatusSync";
 import { useDevices } from "@/hooks/useDevices";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useScheduleStore } from "@/stores/scheduleStore";
@@ -44,6 +45,7 @@ export function ControlShell() {
 
   useEscapeKey(handleEscape);
   useAlarms();
+  useCctvAlarmStatusSync();
   useDevices();
 
   const refreshSchedule = useScheduleStore((s) => s.refresh);
