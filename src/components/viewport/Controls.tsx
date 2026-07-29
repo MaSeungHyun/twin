@@ -1,14 +1,20 @@
 import { OrbitControls } from "@react-three/drei";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { isMobileDevice } from "@/lib/device";
 import { getInitialCameraTarget } from "@/three/initialCamera";
+import { useFrame, useThree } from "@react-three/fiber";
 
 /** 과도한 줌인 → 픽셀 fill-rate 폭주 → Context Lost 방지 */
 export default function Controls(): React.ReactNode {
   const mobile = isMobileDevice();
   const target = useMemo(() => getInitialCameraTarget(), []);
 
+  const camera = useThree((state) => state.camera);
+  useFrame(() => {
+    console.log(camera.position);
+    console.log(camera.quaternion);
+  });
   return (
     <OrbitControls
       makeDefault
