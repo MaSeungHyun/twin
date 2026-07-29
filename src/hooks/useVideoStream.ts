@@ -8,11 +8,35 @@ function resolveVideo(
   return videoOrRef;
 }
 
-function attachStream(video: HTMLVideoElement, streamUrl: string) {
+function seekWhenReady(video: HTMLVideoElement, startTime: number) {
+  if (!(startTime > 0)) return;
+
+  const apply = () => {
+    try {
+      video.currentTime = startTime;
+    } catch {
+      /* seek 불가 시 무시 */
+    }
+  };
+
+  if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+    apply();
+    return;
+  }
+
+  video.addEventListener("loadedmetadata", apply, { once: true });
+}
+
+function attachStream(
+  video: HTMLVideoElement,
+  streamUrl: string,
+  startTime = 0,
+) {
   video.preload = "auto";
   if (video.src !== streamUrl) {
     video.src = streamUrl;
   }
+  seekWhenReady(video, startTime);
   void video.play().catch(() => {
     /* autoplay blocked — canplay 이벤트에서 재시도 */
   });
@@ -29,6 +53,7 @@ export function useVideoStream(
   videoOrRef: RefObject<HTMLVideoElement | null> | HTMLVideoElement | null,
   streamUrl: string | undefined,
   enabled: boolean,
+  startTime = 0,
 ) {
   useEffect(() => {
     const video = resolveVideo(videoOrRef);
@@ -39,7 +64,7 @@ export function useVideoStream(
       return;
     }
 
-    attachStream(video, streamUrl);
+    attachStream(video, streamUrl, startTime);
 
     const onCanPlay = () => {
       void video.play().catch(() => {});
@@ -50,5 +75,5 @@ export function useVideoStream(
       video.removeEventListener("canplay", onCanPlay);
       detachStream(video);
     };
-  }, [videoOrRef, streamUrl, enabled]);
+  }, [videoOrRef, streamUrl, enabled, startTime]);
 }

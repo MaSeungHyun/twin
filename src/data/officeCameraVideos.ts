@@ -21,7 +21,6 @@ import transfer2_1080 from "@/assets/video/1080p/transfer2.mp4";
 import transfer3_1080 from "@/assets/video/1080p/transfer3.mp4";
 
 import { isMobileDevice } from "@/lib/device";
-import { CCTV_MARKER_NODE_NAMES } from "@/data/cctvMarkerNodes";
 
 const OFFICE_CAMERA_VIDEO_ORDER = [
   "platform1",
@@ -36,12 +35,17 @@ const OFFICE_CAMERA_VIDEO_ORDER = [
 type VideoId = (typeof OFFICE_CAMERA_VIDEO_ORDER)[number];
 
 /** GLB 카메라 name → 영상 제목(파일명) — 타이틀/소스 공통 */
-const CAMERA_NAME_TO_VIDEO: Record<string, VideoId> = Object.fromEntries(
-  CCTV_MARKER_NODE_NAMES.map((name, index) => [
-    name,
-    OFFICE_CAMERA_VIDEO_ORDER[index % OFFICE_CAMERA_VIDEO_ORDER.length],
-  ]),
-) as Record<string, VideoId>;
+const CAMERA_NAME_TO_VIDEO: Record<string, VideoId> = {
+  office: "platform1",
+  office2: "platform2",
+  office3: "platform3",
+  cafe: "platform4",
+  road: "transfer1",
+  /** 구 이름 호환 */
+  camera: "transfer1",
+  lobby: "transfer2",
+  "conf-room": "transfer3",
+};
 
 const VIDEOS_240 = {
   platform1: platform1_240,
@@ -95,8 +99,7 @@ const TRANSFER_IDS = [
   "transfer3",
 ] as const satisfies readonly VideoId[];
 
-/**
- * devices.json ID → 로컬 영상 키
+/** devices.json ID → 로컬 영상 키
  * - sld-00N (플랫폼) → platform1~4
  * - cm-00N (환승) → transfer1~3
  */
@@ -116,9 +119,22 @@ export function resolveOfficeCameraVideoId(
     return TRANSFER_IDS[(Math.max(n, 1) - 1) % TRANSFER_IDS.length];
   }
 
+  // 알람 id가 GLB 카메라 name인 경우 (office, lobby …)
+  const fromCamera = CAMERA_NAME_TO_VIDEO[deviceId.trim().toLowerCase()];
+  if (fromCamera) return fromCamera;
+
   if (zoneId === "platform-56") return "platform1";
   if (zoneId === "transfer") return "transfer1";
   return "platform1";
+}
+
+export function getCctvMarkerVideoByVideoId(videoId: VideoId | string): string {
+  const id = (
+    OFFICE_CAMERA_VIDEO_ORDER.includes(videoId as VideoId)
+      ? videoId
+      : "platform1"
+  ) as VideoId;
+  return VIDEOS_240[id];
 }
 
 /** CCTV 패널 메인 — 데스크톱 1080p / 모바일·태블릿 720p */
@@ -127,6 +143,15 @@ export function getCctvPanelVideo(
   zoneId?: string,
 ): string {
   const id = resolveOfficeCameraVideoId(deviceId, zoneId);
+  return isMobileDevice() ? VIDEOS_720[id] : VIDEOS_1080[id];
+}
+
+export function getCctvPanelVideoByVideoId(videoId: VideoId | string): string {
+  const id = (
+    OFFICE_CAMERA_VIDEO_ORDER.includes(videoId as VideoId)
+      ? videoId
+      : "platform1"
+  ) as VideoId;
   return isMobileDevice() ? VIDEOS_720[id] : VIDEOS_1080[id];
 }
 

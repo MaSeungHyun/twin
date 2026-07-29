@@ -4,7 +4,7 @@ export const CCTV_MARKER_NODE_NAMES = [
   "office2",
   "office3",
   "cafe",
-  "camera",
+  "road",
   "lobby",
   "conf-room",
 ] as const;
