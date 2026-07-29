@@ -60,8 +60,8 @@
         "severity": "CRITICAL",
         "zoneId": "transfer",
         "deviceId": "cm-006",
-        "title": "Transfer2 혼잡 경보",
-        "message": "Transfer2 구역 혼잡도가 위험 수준에 도달했습니다.",
+        "title": "환승로2 혼잡 경보",
+        "message": "환승로2 구역 혼잡도가 위험 수준에 도달했습니다.",
         "congestionPercent": 88
       }
     },
@@ -73,8 +73,8 @@
         "severity": "HIGH",
         "zoneId": "transfer",
         "deviceId": "cm-010",
-        "title": "Transfer1 혼잡 주의",
-        "message": "Transfer1 구역 혼잡도가 빠르게 상승하고 있습니다.",
+        "title": "환승로1 혼잡 주의",
+        "message": "환승로1 구역 혼잡도가 빠르게 상승하고 있습니다.",
         "congestionPercent": 70
       }
     },
