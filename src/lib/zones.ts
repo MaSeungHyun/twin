@@ -15,8 +15,7 @@ export function matchesZoneFilter(
 /**
  * CCTV 오버레이 마커 — videoTitle(platform/transfer) 기준 구역 필터.
  * restroom 등 해당 없으면 숨김.
- **/
-
+ */
 export function matchesCctvMarkerZone(
   videoTitle: string,
   selectedZoneId: string,

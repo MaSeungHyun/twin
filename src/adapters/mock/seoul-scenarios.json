@@ -9,8 +9,8 @@
         "severity": "HIGH",
         "zoneId": "platform-56",
         "deviceId": "sld-002",
-        "title": "platform1 안전선 접근",
-        "message": "platform1 카메라에서 안전선 접근이 감지되었습니다.",
+        "title": "플랫폼1 안전선 접근",
+        "message": "플랫폼1 카메라에서 안전선 접근이 감지되었습니다.",
         "congestionPercent": 48
       }
     },
@@ -22,8 +22,8 @@
         "severity": "CRITICAL",
         "zoneId": "platform-56",
         "deviceId": "sld-006",
-        "title": "platform2 안전선 침범",
-        "message": "platform2 카메라에서 안전선 침입이 감지되었습니다.",
+        "title": "플랫폼2 안전선 침범",
+        "message": "플랫폼2 카메라에서 안전선 침입이 감지되었습니다.",
         "congestionPercent": 72
       }
     },
@@ -33,10 +33,10 @@
       "alarm": {
         "type": "FALL_DETECTED",
         "severity": "CRITICAL",
-        "zoneId": "platform-56",
+        "zoneId": "restroom",
         "deviceId": "sld-008",
-        "title": "platform3 낙상 감지",
-        "message": "platform3 카메라에서 낙상 이벤트가 감지되었습니다."
+        "title": "화장실 낙상 감지",
+        "message": "화장실에서 낙상 이벤트가 감지되었습니다."
       }
     },
     {
@@ -47,8 +47,8 @@
         "severity": "HIGH",
         "zoneId": "transfer",
         "deviceId": "cm-003",
-        "title": "platform4 혼잡 주의",
-        "message": "platform4 구역 혼잡도가 임계치에 근접했습니다.",
+        "title": "플랫폼4 혼잡 주의",
+        "message": "플랫폼4 구역 혼잡도가 임계치에 근접했습니다.",
         "congestionPercent": 66
       }
     },
@@ -60,8 +60,8 @@
         "severity": "CRITICAL",
         "zoneId": "transfer",
         "deviceId": "cm-006",
-        "title": "transfer2 혼잡 경보",
-        "message": "transfer2 구역 혼잡도가 위험 수준에 도달했습니다.",
+        "title": "Transfer2 혼잡 경보",
+        "message": "Transfer2 구역 혼잡도가 위험 수준에 도달했습니다.",
         "congestionPercent": 88
       }
     },
@@ -73,8 +73,8 @@
         "severity": "HIGH",
         "zoneId": "transfer",
         "deviceId": "cm-010",
-        "title": "transfer1 혼잡 주의",
-        "message": "transfer1 구역 혼잡도가 빠르게 상승하고 있습니다.",
+        "title": "Transfer1 혼잡 주의",
+        "message": "Transfer1 구역 혼잡도가 빠르게 상승하고 있습니다.",
         "congestionPercent": 70
       }
     },
@@ -84,10 +84,10 @@
       "alarm": {
         "type": "TOILET_EMERGENCY",
         "severity": "CRITICAL",
-        "zoneId": "transfer3",
+        "zoneId": "restroom",
         "deviceId": "rs-02",
-        "title": "transfer3 위급",
-        "message": "transfer3 인근에서 위급 신호가 접수되었습니다."
+        "title": "화장실 위급",
+        "message": "화장실에서 수상한 행동이 감지되었습니다."
       }
     }
   ]

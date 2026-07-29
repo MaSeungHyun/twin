@@ -86,7 +86,7 @@ export default function CctvProjectionSync() {
     }
 
     const activeFloor = office.activeFloorAction;
-    if (activeFloor == null) {
+    if (activeFloor == null || activeFloor === "Default") {
       for (const marker of markers) {
         updateCctvHtmlMarker(marker.id, { active: false });
       }
@@ -95,7 +95,6 @@ export default function CctvProjectionSync() {
     }
 
     const selectedZoneId = useUiStore.getState().selectedZoneId;
-    const showAllFloors = activeFloor === "Default";
 
     camera.getWorldPosition(_camPos);
     camera.getWorldQuaternion(_camQuat);
@@ -117,7 +116,7 @@ export default function CctvProjectionSync() {
       const hoveredId = useCctvMarkerHoverStore.getState().hoveredId;
 
       for (const marker of markers) {
-        const floorOk = showAllFloors || marker.floor === activeFloor;
+        const floorOk = marker.floor === activeFloor;
         const zoneOk = matchesCctvMarkerZone(marker.videoTitle, selectedZoneId);
         if (!floorOk || !zoneOk) {
           updateCctvHtmlMarker(marker.id, { active: false });

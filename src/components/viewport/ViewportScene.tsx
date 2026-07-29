@@ -15,9 +15,12 @@ import SceneShadowSync from "./SceneShadowSync";
 export default function ViewportScene() {
   const antialiasEnabled = useViewportTestStore((s) => s.antialiasEnabled);
   const gpuPowerPreference = useViewportTestStore((s) => s.gpuPowerPreference);
-  /** 마커·영상 활성 시 Bloom 부담 완화 (Default overview 포함) */
+  /** 1F~4F 선택(마커·영상 활성) 시 Bloom 부담 완화 */
   const markersActive = useOfficeStore(
-    (s) => s.activeFloorAction != null && s.floorCommand === null,
+    (s) =>
+      s.activeFloorAction != null &&
+      s.activeFloorAction !== "Default" &&
+      s.floorCommand === null,
   );
 
   return (

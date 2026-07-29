@@ -38,7 +38,7 @@ import { useUiStore } from "@/stores/uiStore";
 const CctvLinesSvgContext =
   createContext<RefObject<SVGSVGElement | null> | null>(null);
 
-/** 층 뷰 + 헤더 구역 칩(overview / transfer / platform) */
+/** 1F~4F 선택 시에만 + 헤더 구역 칩(overview / transfer / platform) 필터 */
 function useMarkerVisible(
   floor: CctvOverlayMarkerDef["floor"],
   videoTitle: string,
@@ -46,9 +46,12 @@ function useMarkerVisible(
   const selectedZoneId = useUiStore((s) => s.selectedZoneId);
   const floorOk = useOfficeStore((state) => {
     if (state.floorCommand !== null) return false;
-    if (state.activeFloorAction == null) return false;
-    if (state.activeFloorAction === "Default") return true;
-    return floor != null && state.activeFloorAction === floor;
+    return (
+      state.activeFloorAction != null &&
+      state.activeFloorAction !== "Default" &&
+      floor != null &&
+      state.activeFloorAction === floor
+    );
   });
   return floorOk && matchesCctvMarkerZone(videoTitle, selectedZoneId);
 }
