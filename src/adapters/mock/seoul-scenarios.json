@@ -11,7 +11,7 @@
         "deviceId": "sld-002",
         "title": "플랫폼1 안전선 접근",
         "message": "플랫폼1 카메라에서 안전선 접근이 감지되었습니다.",
-        "congestionPercent": 48
+        "congestionPercent": 62
       }
     },
     {
@@ -24,7 +24,7 @@
         "deviceId": "sld-006",
         "title": "플랫폼2 안전선 침범",
         "message": "플랫폼2 카메라에서 안전선 침입이 감지되었습니다.",
-        "congestionPercent": 72
+        "congestionPercent": 82
       }
     },
     {
