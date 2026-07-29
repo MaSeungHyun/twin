@@ -392,9 +392,13 @@ export class MockRailwayAdapter implements IRailwayStationAdapter {
         );
         this.pushAlarm(alarm);
 
-        if (step.alarm.type === "TOILET_EMERGENCY" && step.alarm.deviceId) {
+        if (
+          (step.alarm.type === "TOILET_EMERGENCY" ||
+            step.alarm.type === "FALL_DETECTED") &&
+          step.alarm.deviceId
+        ) {
           const stall = devices.find((d) => d.deviceId === step.alarm.deviceId);
-          if (stall) {
+          if (stall?.deviceType === "RESTROOM_STALL") {
             this.emitToilet({
               stationId: config.stationId,
               zoneId: stall.zoneId,

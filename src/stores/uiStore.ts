@@ -85,7 +85,11 @@ export const useUiStore = create<UiState>((set) => ({
 
   selectAlarm: (alarm) => {
     const rightPanelMode: RightPanelMode =
-      alarm.type === "TOILET_EMERGENCY" ? "restroom" : "cctv";
+      alarm.type === "TOILET_EMERGENCY" ||
+      alarm.type === "FALL_DETECTED" ||
+      alarm.zoneId === "restroom"
+        ? "restroom"
+        : "cctv";
 
     set({
       selectedAlarmId: alarm.id,

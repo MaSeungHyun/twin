@@ -34,9 +34,9 @@
         "type": "FALL_DETECTED",
         "severity": "CRITICAL",
         "zoneId": "restroom",
-        "deviceId": "sld-008",
+        "deviceId": "rs-03",
         "title": "화장실 낙상 감지",
-        "message": "화장실에서 낙상 이벤트가 감지되었습니다."
+        "message": "화장실 3번 칸에서 낙상 이벤트가 감지되었습니다."
       }
     },
     {
@@ -82,12 +82,12 @@
       "id": "conf-room",
       "delayMs": 95000,
       "alarm": {
-        "type": "TOILET_EMERGENCY",
+        "type": "FALL_DETECTED",
         "severity": "CRITICAL",
         "zoneId": "restroom",
         "deviceId": "rs-02",
         "title": "화장실 위급",
-        "message": "화장실에서 수상한 행동이 감지되었습니다."
+        "message": "화장실 2번 칸에서 낙상이 감지되었습니다."
       }
     }
   ]

@@ -28,7 +28,7 @@ export function RestroomPanel() {
   const emergencyDeviceId = useMemo(() => {
     const active = items.find(
       (alarm) =>
-        alarm.type === 'TOILET_EMERGENCY' &&
+        (alarm.type === 'TOILET_EMERGENCY' || alarm.type === 'FALL_DETECTED') &&
         !alarm.acknowledgedAt &&
         alarm.deviceId,
     )
